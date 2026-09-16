@@ -44,8 +44,18 @@ Visor.iniciar({{
 </html>
 """
 
+def refresca_pesos(libros):
+    """Deja el tamano de cada PDF al dia, asi la estanteria no miente."""
+    for l in libros:
+        ruta = "pdf/%s.pdf" % l["slug"]
+        l["peso"] = os.path.getsize(ruta) if os.path.exists(ruta) else 0
+    with io.open("libros.json", "w", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps(libros, ensure_ascii=False, indent=2) + "\n")
+
+
 def main():
     libros = json.load(io.open("libros.json", encoding="utf-8"))
+    refresca_pesos(libros)
     for l in libros:
         titulo = l["titulo"] + ((" · " + l["subtitulo"]) if l["subtitulo"] else "")
         desc = u"%s — libro ilustrado para leer pasando las páginas." % l["titulo"]

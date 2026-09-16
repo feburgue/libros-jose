@@ -1,15 +1,106 @@
 [
-  { "slug": "pinocho",                    "pagina": "cuento-de-pinocho.html",           "titulo": "Pinocho",                              "subtitulo": "Cuento para los niños",               "paginas": 15 },
-  { "slug": "caperucita",                 "pagina": "caperucita.html",                  "titulo": "Caperucita Roja",                      "subtitulo": "Charles Perrault",                    "paginas": 12 },
-  { "slug": "hadas",                      "pagina": "hadas.html",                       "titulo": "Las Hadas",                            "subtitulo": "Charles Perrault",                    "paginas": 12 },
-  { "slug": "gato-con-botas",             "pagina": "gato-con-botas.html",              "titulo": "El gato con botas",                    "subtitulo": "",                                    "paginas": 21 },
-  { "slug": "fabulas-de-esopo",           "pagina": "fabulas-de-esopo.html",            "titulo": "Fábulas de Esopo",                     "subtitulo": "Cuentos con valores para lectura",    "paginas": 8 },
-  { "slug": "el-osito-mayor",             "pagina": "el-osito-mayor.html",              "titulo": "El Osito mayor",                       "subtitulo": "",                                    "paginas": 14 },
-  { "slug": "las-mariposas-de-mia",       "pagina": "las-mariposas-de-mia.html",        "titulo": "Las mariposas de Mía",                 "subtitulo": "",                                    "paginas": 9 },
-  { "slug": "la-semillita-dormida",       "pagina": "la-semillita-dormida.html",        "titulo": "La Semillita dormida",                 "subtitulo": "",                                    "paginas": 8 },
-  { "slug": "bruna-y-su-viaje-al-espacio","pagina": "bruna-y-su-viaje-al-espacio.html", "titulo": "Bruna y su viaje al espacio",          "subtitulo": "",                                    "paginas": 8 },
-  { "slug": "hugo-se-viste-solo",         "pagina": "hugo-se-viste-solo.html",          "titulo": "Hugo se viste solo",                   "subtitulo": "",                                    "paginas": 9 },
-  { "slug": "jugando-con-mis-companeros", "pagina": "jugando-con-mis-companeros.html",  "titulo": "Jugando con mis compañeros",           "subtitulo": "",                                    "paginas": 9 },
-  { "slug": "leo-y-la-silla-de-ruedas",   "pagina": "leo-y-la-silla-de-ruedas.html",    "titulo": "Leo y el niño de la silla con ruedas", "subtitulo": "",                                    "paginas": 14 },
-  { "slug": "ponte-en-mi-lugar",          "pagina": "ponte-en-mi-lugar.html",           "titulo": "Ponte en mi lugar",                    "subtitulo": "Susanna Isern · Mylène Rigaudie",     "paginas": 21 }
+  {
+    "slug": "pinocho",
+    "pagina": "cuento-de-pinocho.html",
+    "titulo": "Pinocho",
+    "subtitulo": "Cuento para los niños",
+    "paginas": 15,
+    "peso": 3463692
+  },
+  {
+    "slug": "caperucita",
+    "pagina": "caperucita.html",
+    "titulo": "Caperucita Roja",
+    "subtitulo": "Charles Perrault",
+    "paginas": 12,
+    "peso": 3127785
+  },
+  {
+    "slug": "hadas",
+    "pagina": "hadas.html",
+    "titulo": "Las Hadas",
+    "subtitulo": "Charles Perrault",
+    "paginas": 12,
+    "peso": 668274
+  },
+  {
+    "slug": "gato-con-botas",
+    "pagina": "gato-con-botas.html",
+    "titulo": "El gato con botas",
+    "subtitulo": "",
+    "paginas": 21,
+    "peso": 1450899
+  },
+  {
+    "slug": "fabulas-de-esopo",
+    "pagina": "fabulas-de-esopo.html",
+    "titulo": "Fábulas de Esopo",
+    "subtitulo": "Cuentos con valores para lectura",
+    "paginas": 8,
+    "peso": 3941986
+  },
+  {
+    "slug": "el-osito-mayor",
+    "pagina": "el-osito-mayor.html",
+    "titulo": "El Osito mayor",
+    "subtitulo": "",
+    "paginas": 14,
+    "peso": 3169101
+  },
+  {
+    "slug": "las-mariposas-de-mia",
+    "pagina": "las-mariposas-de-mia.html",
+    "titulo": "Las mariposas de Mía",
+    "subtitulo": "",
+    "paginas": 9,
+    "peso": 2228803
+  },
+  {
+    "slug": "la-semillita-dormida",
+    "pagina": "la-semillita-dormida.html",
+    "titulo": "La Semillita dormida",
+    "subtitulo": "",
+    "paginas": 8,
+    "peso": 1615908
+  },
+  {
+    "slug": "bruna-y-su-viaje-al-espacio",
+    "pagina": "bruna-y-su-viaje-al-espacio.html",
+    "titulo": "Bruna y su viaje al espacio",
+    "subtitulo": "",
+    "paginas": 8,
+    "peso": 2318812
+  },
+  {
+    "slug": "hugo-se-viste-solo",
+    "pagina": "hugo-se-viste-solo.html",
+    "titulo": "Hugo se viste solo",
+    "subtitulo": "",
+    "paginas": 9,
+    "peso": 2377699
+  },
+  {
+    "slug": "jugando-con-mis-companeros",
+    "pagina": "jugando-con-mis-companeros.html",
+    "titulo": "Jugando con mis compañeros",
+    "subtitulo": "",
+    "paginas": 9,
+    "peso": 2109895
+  },
+  {
+    "slug": "leo-y-la-silla-de-ruedas",
+    "pagina": "leo-y-la-silla-de-ruedas.html",
+    "titulo": "Leo y el niño de la silla con ruedas",
+    "subtitulo": "",
+    "paginas": 14,
+    "peso": 3310960
+  },
+  {
+    "slug": "ponte-en-mi-lugar",
+    "pagina": "ponte-en-mi-lugar.html",
+    "titulo": "Ponte en mi lugar",
+    "subtitulo": "Susanna Isern · Mylène Rigaudie",
+    "paginas": 21,
+    "peso": 5018483
+  }
 ]
