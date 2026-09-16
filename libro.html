@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Libro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3a2415">
+<meta name="robots" content="noindex">
+<link rel="shortcut icon" type="image/png" href="./favicon.ico">
+<link rel="stylesheet" href="./lib/stPageFlip.css">
+<link rel="stylesheet" href="./lib/visor.css">
+</head>
+<body>
+
+<!-- pdf.js (Mozilla, Apache-2.0) rasteriza el PDF;
+     StPageFlip / page-flip 2.0.7 (Nodlik, MIT) hace el pasaje de páginas. -->
+<script src="./pdfjs-dist/build/pdf.min.js"></script>
+<script src="./lib/page-flip.browser.js"></script>
+<script src="./lib/visor.js"></script>
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search);
+
+  // Solo rutas relativas dentro del sitio: sin esto, cualquiera podría armar un
+  // link a este dominio que muestre un PDF ajeno como si fuera nuestro.
+  function rutaSegura(p) {
+    if (!p) return null;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(p)) return null;   // http:, javascript:, data:…
+    if (p.charAt(0) === "/" || p.indexOf("\\") >= 0) return null;
+    if (p.split("/").indexOf("..") >= 0) return null;
+    if (!/\.pdf$/i.test(p)) return null;
+    return p;
+  }
+
+  var pdf = rutaSegura(q.get("pdf"));
+  if (!pdf) {
+    document.body.innerHTML =
+      '<div style="margin:auto;padding:24px;max-width:36em;line-height:1.6">' +
+      '<h1 style="font-size:20px">Falta indicar el libro</h1>' +
+      '<p>Agregá el PDF a la dirección, por ejemplo:</p>' +
+      '<p><code>libro.html?pdf=pdf/pinocho.pdf&amp;titulo=Pinocho</code></p>' +
+      '<p><a href="./index.html" style="color:#f2a567">Ver todos los libros</a></p></div>';
+    return;
+  }
+
+  var titulo = q.get("titulo") || decodeURIComponent(pdf.split("/").pop().replace(/\.pdf$/i, ""));
+  document.title = titulo;
+  Visor.iniciar({
+    pdf: pdf,
+    titulo: titulo,
+    subtitulo: q.get("subtitulo") || "",
+    inicio: "./index.html"
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+/* Visor de libros — estilos compartidos por libro.html y las páginas de cada cuento. */
+:root{
+  --cream:#fff6e7;
+  --amber:#f2a567;
+  --amber-deep:#d97b3c;
+  --bar:rgba(58,36,21,.55);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color:var(--cream);
+  background:#2a1a0f radial-gradient(ellipse at 50% 35%, #7a4a24 0%, #40270f 55%, #241608 100%) fixed;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ---------- barra superior ---------- */
+.v-header{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 16px; padding-top:calc(10px + env(safe-area-inset-top));
+  background:var(--bar); backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,246,231,.12);
+  flex:0 0 auto; z-index:5;
+}
+.v-header h1{
+  margin:0; font-size:16px; font-weight:600; letter-spacing:.2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.v-header h1 small{font-size:inherit; font-weight:400; opacity:.6}
+.v-spacer{flex:1}
+.v-tools{display:flex; gap:4px}
+.v-tool{
+  all:unset; cursor:pointer; display:grid; place-items:center;
+  width:38px; height:38px; border-radius:10px; color:var(--cream);
+}
+.v-tool:hover{background:rgba(255,246,231,.14)}
+.v-tool:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+.v-tool[aria-pressed="false"]{opacity:.45}
+.v-tool svg{width:21px; height:21px; fill:none; stroke:currentColor;
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+a.v-tool{display:grid}
+
+/* ---------- escenario ---------- */
+.v-stage{flex:1 1 auto; position:relative; display:grid; place-items:center; min-height:0}
+#v-shift{transition:transform .35s ease}
+.v-page{background:#fff}
+/* contain y no cover: algunos libros mezclan tapa suelta con pliegos ya
+   armados, y estirarlos deformaria el dibujo */
+.v-page img{width:100%; height:100%; display:block; object-fit:contain}
+/* páginas todavía sin dibujar */
+.v-page.v-pendiente{background:#fff6e7; animation:v-latido 1.4s ease-in-out infinite}
+@keyframes v-latido{0%,100%{opacity:.55}50%{opacity:.85}}
+.stf__item{box-shadow:0 0 18px rgba(0,0,0,.35)}
+
+.v-nav{
+  all:unset; position:absolute; top:0; bottom:0; width:clamp(44px,7vw,90px);
+  display:grid; place-items:center; cursor:pointer; color:var(--cream);
+  opacity:.35; transition:opacity .2s; z-index:4;
+}
+.v-nav:hover{opacity:1}
+.v-nav:focus-visible{outline:2px solid var(--amber); outline-offset:-6px; opacity:1}
+.v-nav[disabled]{opacity:0; pointer-events:none}
+.v-nav.prev{left:0} .v-nav.next{right:0}
+.v-nav svg{width:34px; height:34px; fill:none; stroke:currentColor;
+  stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+
+/* ---------- barra inferior ---------- */
+.v-footer{
+  flex:0 0 auto; padding:8px 16px; padding-bottom:calc(8px + env(safe-area-inset-bottom));
+  background:var(--bar); backdrop-filter:blur(8px);
+  border-top:1px solid rgba(255,246,231,.12);
+  display:flex; align-items:center; gap:14px; z-index:5;
+}
+#v-range{
+  flex:1; -webkit-appearance:none; appearance:none; height:4px; border-radius:4px;
+  background:rgba(255,246,231,.25); cursor:pointer;
+}
+#v-range::-webkit-slider-thumb{-webkit-appearance:none; width:16px; height:16px;
+  border-radius:50%; background:var(--amber); border:2px solid var(--cream)}
+#v-range::-moz-range-thumb{width:16px; height:16px; border:2px solid var(--cream);
+  border-radius:50%; background:var(--amber)}
+#v-counter{font-size:13px; font-variant-numeric:tabular-nums; opacity:.85; min-width:72px; text-align:right}
+
+/* ---------- carga ---------- */
+#v-loader{
+  position:fixed; inset:0; z-index:10; display:grid; place-items:center;
+  background:#241608; text-align:center;
+}
+#v-loader .box{display:grid; gap:18px; justify-items:center; padding:24px}
+#v-loader p{margin:0; font-size:15px; opacity:.8}
+.v-track{width:min(280px,70vw); height:5px; border-radius:5px;
+  background:rgba(255,246,231,.18); overflow:hidden}
+.v-fill{height:100%; width:0%; border-radius:5px;
+  background:linear-gradient(90deg,var(--amber),var(--amber-deep)); transition:width .25s}
+#v-loader.oculto{opacity:0; pointer-events:none; transition:opacity .5s}
+#v-error{display:none; max-width:min(440px,84vw); line-height:1.5; font-size:14px}
+
+@media (max-width:640px){
+  .v-header h1{font-size:14px}
+  .v-header h1 small{display:none}
+  .v-header,.v-footer{padding-left:10px; padding-right:10px}
+}
+@media (prefers-reduced-motion:reduce){
+  #v-shift{transition:none}
+  .v-page.v-pendiente{animation:none}
+}
