@@ -12,10 +12,34 @@ body{
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color:var(--cream);
   background:#2a1a0f radial-gradient(ellipse at 50% 35%, #7a4a24 0%, #40270f 55%, #241608 100%) fixed;
-  display:flex; flex-direction:column;
   overflow:hidden;
   -webkit-tap-highlight-color:transparent;
 }
+
+/* ---------- marco girable ----------
+   Gira 90° el visor entero sin tocar la orientacion del telefono, para leer
+   apaisado con la pantalla bloqueada en vertical. El marco toma las medidas
+   cruzadas (alto de pantalla como ancho) y se rota sobre su centro, asi que
+   al girar vuelve a cubrir la pantalla justo. Los menus del navegador quedan
+   donde estaban: lo unico que gira es esto. */
+#v-marco{
+  height:100%;
+  display:flex; flex-direction:column;
+}
+body.v-girado #v-marco{
+  position:fixed; top:50%; left:50%;
+  width:100vh;  height:100vw;
+  width:100dvh; height:100dvw;
+  transform:translate(-50%,-50%) rotate(90deg);
+}
+/* girado, el lado corto del telefono pasa a ser el alto: se recorta todo lo
+   que le robe espacio al libro, incluidos los margenes de pantalla que
+   corresponden a la orientacion real y aca sobran */
+body.v-girado .v-header{padding:5px 12px}
+body.v-girado .v-footer{padding:5px 12px}
+body.v-girado .v-tool{width:32px; height:32px}
+body.v-girado .v-tool svg{width:19px; height:19px}
+body.v-girado .v-header h1{font-size:13px}
 
 /* ---------- barra superior ---------- */
 .v-header{
