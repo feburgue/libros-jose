@@ -102,5 +102,85 @@
     "subtitulo": "Susanna Isern · Mylène Rigaudie",
     "paginas": 21,
     "peso": 5018483
+  },
+  {
+    "slug": "alba-y-el-tarro-de-las-cosas-bonitas",
+    "pagina": "alba-y-el-tarro-de-las-cosas-bonitas.html",
+    "titulo": "Alba y el tarro de las cosas bonitas",
+    "subtitulo": "",
+    "paginas": 8,
+    "peso": 1282353
+  },
+  {
+    "slug": "el-gigante-que-hablaba-bajito",
+    "pagina": "el-gigante-que-hablaba-bajito.html",
+    "titulo": "El gigante que hablaba bajito",
+    "subtitulo": "",
+    "paginas": 8,
+    "peso": 1730923
+  },
+  {
+    "slug": "el-gran-dia-sin-panal-de-hugo",
+    "pagina": "el-gran-dia-sin-panal-de-hugo.html",
+    "titulo": "El gran día sin pañal de Hugo",
+    "subtitulo": "",
+    "paginas": 8,
+    "peso": 3766424
+  },
+  {
+    "slug": "emma-y-el-hada-de-los-chupetes",
+    "pagina": "emma-y-el-hada-de-los-chupetes.html",
+    "titulo": "Emma y el hada de chupetes",
+    "subtitulo": "",
+    "paginas": 9,
+    "peso": 1724600
+  },
+  {
+    "slug": "hugo-y-valentina-no-quieren-compartir",
+    "pagina": "hugo-y-valentina-no-quieren-compartir.html",
+    "titulo": "Hugo y Valentina no quieren compartir",
+    "subtitulo": "",
+    "paginas": 8,
+    "peso": 1462909
+  },
+  {
+    "slug": "la-fiesta-de-esperar-el-turno",
+    "pagina": "la-fiesta-de-esperar-el-turno.html",
+    "titulo": "La fiesta de esperar el turno",
+    "subtitulo": "",
+    "paginas": 9,
+    "peso": 2396073
+  },
+  {
+    "slug": "la-gran-aventura-de-mathias",
+    "pagina": "la-gran-aventura-de-mathias.html",
+    "titulo": "La gran aventura de Mathias",
+    "subtitulo": "",
+    "paginas": 8,
+    "peso": 1785026
+  },
+  {
+    "slug": "la-torre-mas-alta-del-parque",
+    "pagina": "la-torre-mas-alta-del-parque.html",
+    "titulo": "La torre más alta del parque",
+    "subtitulo": "",
+    "paginas": 9,
+    "peso": 2433873
+  },
+  {
+    "slug": "leo-y-la-nube-que-se-perdio",
+    "pagina": "leo-y-la-nube-que-se-perdio.html",
+    "titulo": "Leo y la nube que se perdió",
+    "subtitulo": "",
+    "paginas": 9,
+    "peso": 1183911
+  },
+  {
+    "slug": "sofia-deja-el-panal",
+    "pagina": "sofia-deja-el-panal.html",
+    "titulo": "Sofía deja el pañal",
+    "subtitulo": "",
+    "paginas": 14,
+    "peso": 2635613
   }
 ]
