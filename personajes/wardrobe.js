@@ -1,0 +1,112 @@
+// Armario compartido: las mismas prendas les quedan a todos los personajes.
+// Cada prenda se dibuja una sola vez en coordenadas "normalizadas" y la app la acomoda
+// a cada personaje con los datos de "fit" de su archivo:
+//   hat:     cinta del gorro en y=0, ancho 200 (x de -100 a 100)
+//   glasses: centro de los lentes en (-50, 0) y (50, 0)
+//   top:     cuello en y=0, cintura en y=100, hombros en x=±50 · sleeve: manga del hombro izquierdo en (0, 0)
+//   bottom:  cintura en y=0 (x ±50), ruedo en y=100
+//   shoes:   zapato del pie izquierdo centrado en (0, 0), ancho ~100, punta hacia la izquierda
+WARDROBE({
+  hat: [
+    { id: "gorra",
+      name: "Gorra",
+      emoji: "🧢",
+      svg: `<path d="M-78 0 Q-80 -80 0 -86 Q80 -80 78 0 Z" fill="#2f6fd6" stroke="#1d4fa3" stroke-width="4"/><path d="M0 -86 L0 -4 M-40 -76 Q-34 -40 -30 -2 M40 -76 Q34 -40 30 -2" stroke="#1d4fa3" stroke-width="2.5" fill="none" opacity=".6"/><circle cx="0" cy="-86" r="8" fill="#1d4fa3"/><circle cx="0" cy="-40" r="19" fill="#fff" stroke="#1d4fa3" stroke-width="2"/><path d="M0.0 -53.0 L3.4 -44.7 L12.4 -44.0 L5.6 -38.2 L7.6 -29.5 L0.0 -34.1 L-7.6 -29.5 L-5.6 -38.2 L-12.4 -44.0 L-3.4 -44.7 Z" fill="#f5c400" stroke="#c99a00" stroke-width="1.5" vector-effect="non-scaling-stroke"/><ellipse cx="-30" cy="-62" rx="18" ry="8" fill="#fff" opacity=".25"/><ellipse cx="0" cy="4" rx="96" ry="16" fill="#2456b0" stroke="#163a80" stroke-width="4"/><ellipse cx="-20" cy="0" rx="40" ry="5" fill="#fff" opacity=".18"/>` },
+    { id: "safari",
+      name: "Explorador",
+      emoji: "🦁",
+      svg: `<ellipse cx="0" cy="-4" rx="106" ry="21" fill="#e9dcb3" stroke="#9c8a5c" stroke-width="4"/><ellipse cx="0" cy="0" rx="80" ry="10" fill="#000" opacity=".1"/><path d="M-62 -8 Q-62 -72 0 -78 Q62 -72 62 -8 Z" fill="#e3d4a6" stroke="#9c8a5c" stroke-width="4" stroke-linejoin="round"/><path d="M-22 -72 Q0 -58 22 -72" stroke="#9c8a5c" stroke-width="3" fill="none"/><path d="M-62 -26 Q0 -12 62 -26 L63 -8 Q0 6 -63 -8 Z" fill="#8a5a2e" stroke="#5e3a1a" stroke-width="2.5"/><ellipse cx="-26" cy="-54" rx="16" ry="7" fill="#fff" opacity=".3"/>` },
+    { id: "corona",
+      name: "Corona",
+      emoji: "👑",
+      svg: `<path d="M-72 0 L-82 -74 L-42 -38 L0 -92 L42 -38 L82 -74 L72 0 Z" fill="#f7c948" stroke="#c9951b" stroke-width="4" stroke-linejoin="round"/><path d="M-74 -14 L74 -14" stroke="#c9951b" stroke-width="3"/><circle cx="-82" cy="-78" r="8" fill="#f7c948" stroke="#c9951b" stroke-width="3"/><circle cx="0" cy="-96" r="8" fill="#f7c948" stroke="#c9951b" stroke-width="3"/><circle cx="82" cy="-78" r="8" fill="#f7c948" stroke="#c9951b" stroke-width="3"/><circle cx="0" cy="-36" r="12" fill="#e4002b" stroke="#fff" stroke-width="2.5"/><circle cx="-44" cy="-24" r="7.5" fill="#2f6fd6" stroke="#fff" stroke-width="2"/><circle cx="44" cy="-24" r="7.5" fill="#22a35a" stroke="#fff" stroke-width="2"/><path d="M-58 -60 L-50 -44 M-4 -76 L2 -62" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".6"/>` },
+    { id: "dormir",
+      name: "Gorro de dormir",
+      emoji: "🌙",
+      svg: `<path d="M-82 -6 C-82 -70 -20 -112 52 -104 C92 -100 116 -72 112 -40 C98 -66 70 -74 44 -62 C16 -48 64 -18 82 -6 Z" fill="#7b8ce0" stroke="#4f5fb8" stroke-width="4" stroke-linejoin="round"/><path d="M-34.0 -67.0 L-31.6 -61.3 L-25.4 -60.8 L-30.1 -56.7 L-28.7 -50.7 L-34.0 -54.0 L-39.3 -50.7 L-37.9 -56.7 L-42.6 -60.8 L-36.4 -61.3 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M10.0 -93.0 L11.9 -88.5 L16.7 -88.2 L13.0 -85.0 L14.1 -80.3 L10.0 -82.8 L5.9 -80.3 L7.0 -85.0 L3.3 -88.2 L8.1 -88.5 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M30.0 -48.0 L32.1 -42.9 L37.6 -42.5 L33.4 -38.9 L34.7 -33.5 L30.0 -36.4 L25.3 -33.5 L26.6 -38.9 L22.4 -42.5 L27.9 -42.9 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M76.0 -92.0 L77.6 -88.2 L81.7 -87.9 L78.6 -85.2 L79.5 -81.1 L76.0 -83.3 L72.5 -81.1 L73.4 -85.2 L70.3 -87.9 L74.4 -88.2 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><circle cx="112" cy="-40" r="17" fill="#fff" stroke="#cfd5e0" stroke-width="3"/><rect x="-92" y="-18" width="184" height="24" rx="12" fill="#fff" stroke="#cfd5e0" stroke-width="3"/>` },
+    { id: "fiesta",
+      name: "Gorro de fiesta",
+      emoji: "🥳",
+      svg: `<defs><pattern id="w-party" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="28" height="28" fill="#ff7eb6"/><rect width="14" height="28" fill="#ffd84a"/></pattern></defs><path d="M-58 0 L0 -142 L58 0 Z" fill="url(#w-party)" stroke="#d63a80" stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="-144" r="15" fill="#7fd8d4" stroke="#3ea7a2" stroke-width="3"/><path d="M-62 -2 Q0 16 62 -2" stroke="#7fd8d4" stroke-width="11" fill="none" stroke-linecap="round"/><circle cx="-20" cy="-50" r="4" fill="#fff"/><circle cx="14" cy="-80" r="4" fill="#fff"/><circle cx="22" cy="-30" r="4" fill="#fff"/>` }
+  ],
+  glasses: [
+    { id: "sol",
+      name: "De sol",
+      emoji: "🕶️",
+      svg: `<path d="M-10 -16 Q0 -26 10 -16" stroke="#111" stroke-width="7" fill="none"/><path d="M-98 -18 L-118 -26 M98 -18 L118 -26" stroke="#111" stroke-width="7" stroke-linecap="round"/><rect x="-98" y="-40" width="88" height="78" rx="30" fill="#1f2233" stroke="#111" stroke-width="6"/><rect x="10" y="-40" width="88" height="78" rx="30" fill="#1f2233" stroke="#111" stroke-width="6"/><path d="M-82 -20 L-62 -28 M26 -20 L46 -28" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".55"/>` },
+    { id: "redondos",
+      name: "Redondos",
+      emoji: "👓",
+      svg: `<path d="M-10 -8 Q0 -18 10 -8" stroke="#8a4b20" stroke-width="6" fill="none"/><path d="M-92 -8 L-116 -16 M92 -8 L116 -16" stroke="#8a4b20" stroke-width="6" stroke-linecap="round"/><circle cx="-50" cy="0" r="42" fill="#bfe3ff" fill-opacity=".25" stroke="#8a4b20" stroke-width="7"/><circle cx="50" cy="0" r="42" fill="#bfe3ff" fill-opacity=".25" stroke="#8a4b20" stroke-width="7"/><path d="M-72 -18 Q-64 -28 -52 -30 M28 -18 Q36 -28 48 -30" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>` },
+    { id: "corazon",
+      name: "Corazones",
+      emoji: "💖",
+      svg: `<path d="M-10 -8 Q0 -18 10 -8" stroke="#d63a80" stroke-width="6" fill="none"/><path d="M-96 -12 L-118 -20 M96 -12 L118 -20" stroke="#d63a80" stroke-width="6" stroke-linecap="round"/><path d="M-50 35.7 C-108.8 0.0 -98.3 -50.4 -50 -25.2 C-1.7 -50.4 8.8 0.0 -50 35.7 Z" fill="#ff5fa2" fill-opacity=".6" stroke="#d63a80" stroke-width="6" stroke-linejoin="round"/><path d="M50 35.7 C-8.8 0.0 1.7 -50.4 50 -25.2 C98.3 -50.4 108.8 0.0 50 35.7 Z" fill="#ff5fa2" fill-opacity=".6" stroke="#d63a80" stroke-width="6" stroke-linejoin="round"/><path d="M-74 -18 Q-66 -28 -58 -26 M26 -18 Q34 -28 42 -26" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".85"/>` },
+    { id: "estrellas",
+      name: "Estrellas",
+      emoji: "⭐",
+      svg: `<path d="M-10 -8 Q0 -18 10 -8" stroke="#d99a00" stroke-width="6" fill="none"/><path d="M-92 -12 L-118 -20 M92 -12 L118 -20" stroke="#d99a00" stroke-width="6" stroke-linecap="round"/><path d="M-50.0 -48.0 L-37.3 -17.5 L-4.3 -14.8 L-29.5 6.7 L-21.8 38.8 L-50.0 21.6 L-78.2 38.8 L-70.5 6.7 L-95.7 -14.8 L-62.7 -17.5 Z" fill="#ffd84a" stroke="#d99a00" stroke-width="6" fill-opacity=".65" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M50.0 -48.0 L62.7 -17.5 L95.7 -14.8 L70.5 6.7 L78.2 38.8 L50.0 21.6 L21.8 38.8 L29.5 6.7 L4.3 -14.8 L37.3 -17.5 Z" fill="#ffd84a" stroke="#d99a00" stroke-width="6" fill-opacity=".65" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>` }
+  ],
+  top: [
+    { id: "deporte",
+      name: "Camiseta",
+      emoji: "⚽",
+      body: `<path d="M-30 0 L30 0 C46 18 52 50 52 100 L-52 100 C-52 50 -46 18 -30 0 Z" fill="#22a35a" stroke="#137a3e" stroke-width="3" vector-effect="non-scaling-stroke"/><path d="M-45 34 L-51 100 M45 34 L51 100" stroke="#fff" stroke-width="5" fill="none" vector-effect="non-scaling-stroke"/><path d="M-22 1 L0 22 L22 1" stroke="#fff" stroke-width="5" fill="none" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><text x="0" y="76" font-size="42" font-weight="700" text-anchor="middle" fill="#fff" font-family="Fredoka, Arial, sans-serif">10</text><path d="M-52 94 L52 94" stroke="#137a3e" stroke-width="3" vector-effect="non-scaling-stroke"/>`,
+      sleeve: `<ellipse cx="-4" cy="6" rx="19" ry="17" fill="#22a35a" stroke="#137a3e" stroke-width="3"/><path d="M-21 12 Q-8 26 12 18" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>` },
+    { id: "pijama",
+      name: "Pijama",
+      emoji: "🌙",
+      body: `<path d="M-30 0 L30 0 C46 18 52 50 52 100 L-52 100 C-52 50 -46 18 -30 0 Z" fill="#a9cdf7" stroke="#5d8fd0" stroke-width="3" vector-effect="non-scaling-stroke"/><path d="M-22 1 L0 22 L22 1" stroke="#fff" stroke-width="5" fill="none" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M0 22 L0 100" stroke="#5d8fd0" stroke-width="2" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/><circle cx="0" cy="40" r="3.5" fill="#fff"/><circle cx="0" cy="62" r="3.5" fill="#fff"/><circle cx="0" cy="84" r="3.5" fill="#fff"/><path d="M-30.0 31.0 L-27.6 36.7 L-21.4 37.2 L-26.1 41.3 L-24.7 47.3 L-30.0 44.0 L-35.3 47.3 L-33.9 41.3 L-38.6 37.2 L-32.4 36.7 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M28.0 48.0 L30.1 53.1 L35.6 53.5 L31.4 57.1 L32.7 62.5 L28.0 59.6 L23.3 62.5 L24.6 57.1 L20.4 53.5 L25.9 53.1 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M-24.0 73.0 L-22.1 77.5 L-17.3 77.8 L-21.0 81.0 L-19.9 85.7 L-24.0 83.2 L-28.1 85.7 L-27.0 81.0 L-30.7 77.8 L-25.9 77.5 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M34.0 80.0 L35.6 83.8 L39.7 84.1 L36.6 86.8 L37.5 90.9 L34.0 88.7 L30.5 90.9 L31.4 86.8 L28.3 84.1 L32.4 83.8 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M26 18 A12 12 0 1 0 36 36 A9 9 0 1 1 26 18 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5"/>`,
+      sleeve: `<ellipse cx="-4" cy="6" rx="19" ry="17" fill="#a9cdf7" stroke="#5d8fd0" stroke-width="3"/><path d="M-21 12 Q-8 26 12 18" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>` },
+    { id: "safari",
+      name: "Explorador",
+      emoji: "🦁",
+      body: `<path d="M-30 0 L30 0 C46 18 52 50 52 100 L-52 100 C-52 50 -46 18 -30 0 Z" fill="#cdbd8e" stroke="#7d6c45" stroke-width="3" vector-effect="non-scaling-stroke"/><path d="M0 26 L0 100" stroke="#7d6c45" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="0" cy="48" r="3" fill="#6b5a38"/><circle cx="0" cy="72" r="3" fill="#6b5a38"/><rect x="-38" y="36" width="26" height="28" rx="3" fill="none" stroke="#7d6c45" stroke-width="2" vector-effect="non-scaling-stroke"/><path d="M-39 36 L-11 36 L-13 46 L-25 49 L-37 46 Z" fill="#bfae7c" stroke="#7d6c45" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><rect x="12" y="36" width="26" height="28" rx="3" fill="none" stroke="#7d6c45" stroke-width="2" vector-effect="non-scaling-stroke"/><path d="M11 36 L39 36 L37 46 L25 49 L13 46 Z" fill="#bfae7c" stroke="#7d6c45" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-14 2 L14 2 L0 30 Z" fill="#e0782c" stroke="#9c4f18" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-26 -2 L0 18 L-14 34 L-36 8 Z M26 -2 L0 18 L14 34 L36 8 Z" fill="#d9ca9c" stroke="#7d6c45" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`,
+      sleeve: `<ellipse cx="-4" cy="6" rx="19" ry="17" fill="#cdbd8e" stroke="#7d6c45" stroke-width="3"/><path d="M-21 12 Q-8 26 12 18" stroke="#7d6c45" stroke-width="6" fill="none" stroke-linecap="round"/>` },
+    { id: "princesa",
+      name: "Princesa",
+      emoji: "👸",
+      body: `<path d="M-30 0 L30 0 C46 18 52 50 52 100 L-52 100 C-52 50 -46 18 -30 0 Z" fill="#ff8cc6" stroke="#d6509b" stroke-width="3" vector-effect="non-scaling-stroke"/><path d="M-30 2 Q-16 18 0 8 Q16 18 30 2" stroke="#f7c948" stroke-width="5" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/><path d="M0 60.3 C-23.5 46.0 -19.3 25.8 0 35.9 C19.3 25.8 23.5 46.0 0 60.3 Z" fill="#f7c948" stroke="#c9951b" stroke-width="2" vector-effect="non-scaling-stroke"/><path d="M-52 88 Q0 98 52 88" stroke="#f7c948" stroke-width="7" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="-28" cy="40" r="2.5" fill="#fff"/><circle cx="30" cy="66" r="2.5" fill="#fff"/><circle cx="-22" cy="74" r="2" fill="#fff"/><circle cx="24" cy="30" r="2" fill="#fff"/>`,
+      sleeve: `<ellipse cx="-4" cy="5" rx="23" ry="20" fill="#ff8cc6" stroke="#d6509b" stroke-width="3"/><path d="M-14 -6 Q-4 2 8 -6" stroke="#d6509b" stroke-width="2" fill="none" opacity=".6"/><path d="M-24 14 Q-8 30 14 20" stroke="#f7c948" stroke-width="5" fill="none" stroke-linecap="round"/>` }
+  ],
+  bottom: [
+    { id: "deporte",
+      name: "Short",
+      emoji: "🩳",
+      svg: `<path d="M-50 0 L50 0 C54 40 58 70 60 100 L8 100 L0 64 L-8 100 L-60 100 C-58 70 -54 40 -50 0 Z" fill="#1b3a8a" stroke="#0f2460" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-52 6 L52 6" stroke="#fff" stroke-width="4" vector-effect="non-scaling-stroke"/><path d="M-54 18 L-59 96 M54 18 L59 96" stroke="#fff" stroke-width="5" vector-effect="non-scaling-stroke"/>` },
+    { id: "safari",
+      name: "Explorador",
+      emoji: "🦁",
+      svg: `<path d="M-50 0 L50 0 C54 40 58 70 60 100 L8 100 L0 64 L-8 100 L-60 100 C-58 70 -54 40 -50 0 Z" fill="#cdbd8e" stroke="#7d6c45" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-40 20 Q-32 40 -36 58 M40 20 Q32 40 36 58" stroke="#7d6c45" stroke-width="2" fill="none" vector-effect="non-scaling-stroke"/><path d="M-58 90 L-10 92 M10 92 L58 90" stroke="#7d6c45" stroke-width="2" opacity=".6" vector-effect="non-scaling-stroke"/><path d="M-51 -2 L51 -2 L52 14 L-52 14 Z" fill="#7a4a24" stroke="#4a2810" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="-12" y="-5" width="24" height="22" rx="3" fill="#d7dbe0" stroke="#8a9099" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="-6" y="1" width="12" height="10" rx="1.5" fill="#8a9099"/>` },
+    { id: "tutu",
+      name: "Tutú",
+      emoji: "🩰",
+      svg: `<path d="M-50 0 L50 0 Q86 44 96 74 Q84 92 72 77 Q60 92 48 77 Q36 92 24 77 Q12 92 0 77 Q-12 92 -24 77 Q-36 92 -48 77 Q-60 92 -72 77 Q-84 92 -96 77 Q-86 44 -50 0 Z" fill="#ffd1e8" stroke="#f08cbf" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-50 2 L50 2 Q74 37 84 62 Q72 78 60 65 Q48 78 36 65 Q24 78 12 65 Q0 78 -12 65 Q-24 78 -36 65 Q-48 78 -60 65 Q-72 78 -84 65 Q-74 37 -50 2 Z" fill="#ff9fcf" fill-opacity=".92" stroke="#e070aa" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-51 0 L51 0 L52 12 L-52 12 Z" fill="#ff7eb6" stroke="#d6509b" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="-40" cy="40" r="2.5" fill="#fff"/><circle cx="-10" cy="56" r="2.5" fill="#fff"/><circle cx="30" cy="36" r="2.5" fill="#fff"/><circle cx="56" cy="58" r="2.5" fill="#fff"/><circle cx="-62" cy="62" r="2.5" fill="#fff"/>` },
+    { id: "pijama",
+      name: "Pijama",
+      emoji: "🌙",
+      svg: `<path d="M-50 0 L50 0 C54 40 58 70 60 100 L8 100 L0 64 L-8 100 L-60 100 C-58 70 -54 40 -50 0 Z" fill="#a9cdf7" stroke="#5d8fd0" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-52 6 L52 6" stroke="#fff" stroke-width="4" vector-effect="non-scaling-stroke"/><path d="M-30.0 31.0 L-27.6 36.7 L-21.4 37.2 L-26.1 41.3 L-24.7 47.3 L-30.0 44.0 L-35.3 47.3 L-33.9 41.3 L-38.6 37.2 L-32.4 36.7 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M28.0 22.0 L30.1 27.1 L35.6 27.5 L31.4 31.1 L32.7 36.5 L28.0 33.6 L23.3 36.5 L24.6 31.1 L20.4 27.5 L25.9 27.1 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M34.0 65.0 L35.9 69.5 L40.7 69.8 L37.0 73.0 L38.1 77.7 L34.0 75.2 L29.9 77.7 L31.0 73.0 L27.3 69.8 L32.1 69.5 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/><path d="M-36.0 74.0 L-34.4 77.8 L-30.3 78.1 L-33.4 80.8 L-32.5 84.9 L-36.0 82.7 L-39.5 84.9 L-38.6 80.8 L-41.7 78.1 L-37.6 77.8 Z" fill="#ffd84a" stroke="#d9a400" stroke-width="1.5" vector-effect="non-scaling-stroke"/>` },
+    { id: "jean",
+      name: "De jean",
+      emoji: "👖",
+      svg: `<path d="M-50 0 L50 0 C54 40 58 70 60 100 L8 100 L0 64 L-8 100 L-60 100 C-58 70 -54 40 -50 0 Z" fill="#4a7cc9" stroke="#2c5494" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M-52 10 L52 10" stroke="#f5c26b" stroke-width="2" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/><path d="M-44 18 Q-30 34 -16 18 M44 18 Q30 34 16 18" stroke="#f5c26b" stroke-width="2" fill="none" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"/><path d="M-60 88 L-8 90 M8 90 L60 88" stroke="#8fb2e6" stroke-width="8" vector-effect="non-scaling-stroke"/><circle cx="0" cy="6" r="4" fill="#d7dbe0" stroke="#8a9099" stroke-width="1.5"/>` }
+  ],
+  shoes: [
+    { id: "zapatillas",
+      name: "Zapatillas",
+      emoji: "👟",
+      svg: `<path d="M-60 12 Q-64 -8 -34 -14 L4 -22 Q34 -26 42 -4 Q46 14 34 18 L-48 20 Q-60 20 -60 12 Z" fill="#fff" stroke="#9aa3b5" stroke-width="3" stroke-linejoin="round"/><path d="M-60 12 Q-58 23 -46 23 L34 23 Q46 21 44 10" fill="none" stroke="#e4002b" stroke-width="8" stroke-linecap="round"/><path d="M-32 -4 Q0 0 28 -14" stroke="#2f6fd6" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M-4 -18 L10 -10 M5 -21 L18 -13 M14 -23 L26 -16" stroke="#9aa3b5" stroke-width="3" stroke-linecap="round"/>` },
+    { id: "botas",
+      name: "Botas",
+      emoji: "🥾",
+      svg: `<ellipse cx="12" cy="-20" rx="20" ry="9" fill="#d9782e" stroke="#9c4f18" stroke-width="2.5"/><path d="M-58 14 Q-62 -16 -12 -18 Q40 -20 46 4 Q48 18 32 20 L-44 22 Q-58 22 -58 14 Z" fill="#9a5a2e" stroke="#5e3418" stroke-width="3"/><path d="M-60 15 Q-58 28 -42 28 L32 28 Q50 26 48 10" stroke="#4a2810" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M-48 10 Q-44 -8 -12 -10 Q24 -12 34 4" stroke="#e8c9a0" stroke-width="2" fill="none" stroke-dasharray="4 4" opacity=".8"/><path d="M0 -14 L20 -2 M20 -14 L0 -2 M-4 -6 L10 4 M12 -6 L-2 6" stroke="#3b2412" stroke-width="3" stroke-linecap="round"/><ellipse cx="-34" cy="-2" rx="12" ry="4" fill="#fff" opacity=".22"/>` },
+    { id: "pantuflas",
+      name: "Pantuflas",
+      emoji: "🐰",
+      svg: `<ellipse cx="14" cy="-30" rx="8" ry="19" fill="#ffc2dd" stroke="#e27fb0" stroke-width="2.5" transform="rotate(12 14 -30)"/><ellipse cx="30" cy="-26" rx="8" ry="19" fill="#ffc2dd" stroke="#e27fb0" stroke-width="2.5" transform="rotate(32 30 -26)"/><ellipse cx="14" cy="-30" rx="3.5" ry="12" fill="#ff8fb8" transform="rotate(12 14 -30)"/><ellipse cx="30" cy="-26" rx="3.5" ry="12" fill="#ff8fb8" transform="rotate(32 30 -26)"/><path d="M-58 10 Q-62 -14 -20 -16 Q30 -18 42 0 Q46 18 28 20 L-44 20 Q-58 20 -58 10 Z" fill="#ffc2dd" stroke="#e27fb0" stroke-width="3"/><path d="M-50 -2 Q-20 -14 30 -6" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" opacity=".9"/><circle cx="-36" cy="4" r="3.5" fill="#333"/><circle cx="-20" cy="2" r="3.5" fill="#333"/><ellipse cx="-28" cy="10" rx="4" ry="3" fill="#ff6f9a"/>` },
+    { id: "lluvia",
+      name: "De lluvia",
+      emoji: "☔",
+      svg: `<path d="M-52 16 Q-56 -2 -30 -6 L-6 -8 L-6 -54 L36 -54 L38 4 Q40 18 28 20 L-42 22 Q-52 22 -52 16 Z" fill="#f5c400" stroke="#c99a00" stroke-width="3" stroke-linejoin="round"/><path d="M-54 17 Q-52 28 -40 28 L28 28 Q42 26 40 12" stroke="#4a3a00" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M-8 -54 L38 -54 L38 -44 L-8 -44 Z" fill="#ffd84a" stroke="#c99a00" stroke-width="2.5"/><path d="M4 -38 L4 -12" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".5"/>` }
+  ]
+});

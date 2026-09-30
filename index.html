@@ -56,6 +56,13 @@
   a.bajar:hover{opacity:1; background:rgba(255,246,231,.12)}
   a.bajar:focus-visible{outline:2px solid var(--amber); outline-offset:2px; opacity:1}
 
+  /* tarjeta del juego: no tiene tapa, se dibuja con color y un emoji grande */
+  .tapa.juego{
+    display:flex; align-items:center; justify-content:center;
+    font-size:clamp(48px,9vw,72px); line-height:1;
+    background:linear-gradient(160deg,#ffd9e8 0%,#ffa9cb 55%,#d4738f 100%);
+  }
+
   footer{
     text-align:center; padding:0 20px calc(40px + env(safe-area-inset-bottom));
     font-size:13px; opacity:.45; line-height:1.6;
@@ -70,7 +77,15 @@
   <p>Tocá una tapa para leer</p>
 </header>
 
-<main id="estante"></main>
+<main id="estante">
+  <div class="libro">
+    <a class="abrir" href="personajes/index.html">
+      <div class="tapa juego" aria-hidden="true">🐭</div>
+      <p class="titulo">Personajes</p>
+      <p class="meta">Jugar con Minnie, Mickey, Daisy y Donald</p>
+    </a>
+  </div>
+</main>
 
 <footer>
   <p id="pie"></p>
@@ -127,8 +142,11 @@
     document.getElementById("pie").textContent =
       libros.length + " libros · " + mb(peso) + " en total";
   }).catch(function () {
-    estante.innerHTML = '<p style="grid-column:1/-1;text-align:center;opacity:.7">' +
-      'No se pudo cargar la lista de libros.</p>';
+    // sin reemplazar el estante entero: la tarjeta del juego tiene que seguir ahí
+    var aviso = document.createElement("p");
+    aviso.style.cssText = "grid-column:1/-1;text-align:center;opacity:.7";
+    aviso.textContent = "No se pudo cargar la lista de libros.";
+    estante.appendChild(aviso);
   });
 })();
 </script>

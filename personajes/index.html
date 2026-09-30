@@ -1,0 +1,1521 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personajes para Josefina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fff0f6; --bg2:#ffe1ee; --ink:#3a2030; --muted:#8a6a7a;
+    --card:#ffffff; --line:#f3c6da; --accent:#e4002b; --accent-ink:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Fredoka",system-ui,sans-serif; color:var(--ink);
+    background:radial-gradient(circle at 50% 30%, var(--bg) 0%, var(--bg2) 100%);
+    display:flex; flex-wrap:wrap; gap:16px; padding:16px; min-height:100vh;
+  }
+  /* escenario: acciones a los costados del personaje, personajes (o armario) abajo */
+  .stage{flex:1 1 100%; position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-rows:minmax(0,1fr) auto;
+         grid-template-areas:"left char right" "bottom bottom bottom"; align-items:center; justify-items:center; gap:6px 12px;
+         height:calc(100vh - 32px); height:calc(100dvh - 32px); min-height:480px}
+  #actionsL{grid-area:left} #actionsR{grid-area:right}
+  #char{grid-area:char}
+  #bottom{grid-area:bottom; width:100%; display:flex; flex-direction:column; align-items:center}
+  .side{display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center}
+  .side button{display:flex; flex-direction:column; align-items:center; gap:0; width:76px; padding:5px 4px; border-radius:16px; background:rgba(255,255,255,.7); font-size:.68rem; line-height:1.1}
+  .side .e{font-size:1.6rem}
+  .side .wardrobe-btn{width:100px; padding:10px 4px 8px; margin-bottom:6px; background:#fff; border:3px solid var(--accent); font-size:.95rem; font-weight:600}
+  .side .wardrobe-btn .e{font-size:3rem}
+  .side[hidden], #cast[hidden], #wardrobe[hidden]{display:none}
+  body.child .side button span:not(.e){display:none}
+  body.child .side .e{font-size:2.1rem}
+  body.child .side .wardrobe-btn .e{font-size:3.4rem}
+  /* selector de personajes */
+  /* armario */
+  #wardrobe{background:#fff; border:2px solid var(--line); border-radius:20px; padding:10px; margin-top:8px; width:100%; max-width:600px}
+  #wItems{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:4px 0 10px; max-height:38vh; overflow-y:auto; padding:2px}
+  #wItems button{display:flex; flex-direction:column; align-items:center; gap:2px; width:88px; padding:6px 4px; border-radius:16px; background:var(--bg); border:3px solid transparent; font-size:.68rem; line-height:1.1}
+  #wItems button{position:relative}
+  #wItems button.on::after{content:'✔'; position:absolute; top:-6px; right:-6px; background:var(--accent); color:#fff; border-radius:50%; width:22px; height:22px; font-size:.75rem; line-height:22px}
+  #wItems button.on{border-color:var(--accent); background:#fff}
+  #wItems img{width:76px; height:56px; pointer-events:none}
+  #wItems .none{font-size:2.4rem; line-height:56px; height:56px}
+  #wFoot{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+  #wFoot button.primary{font-size:1rem}
+  body.child #wItems button{width:120px} body.child #wItems img{width:100px; height:74px}
+  /* prendas puestas: ocultan la ropa propia del personaje */
+  #char[data-wear-hat="1"] .orig-hat, #char[data-wear-top="1"] .orig-top,
+  #char[data-wear-bottom="1"] .orig-bottom, #char[data-wear-shoes="1"] .orig-shoes{display:none}
+  #char[data-wear-top="1"] .orig-sleeve{stroke:#fff !important}
+  #char[data-wear-top="1"] .orig-sleeve-outline{stroke:#aebfd6 !important}
+  .wear-hat{transform-box:fill-box; transform-origin:50% 100%}
+  .hatpop .wear-hat{animation:hatpop .7s cubic-bezier(.34,1.4,.64,1)}
+  @keyframes hatpop{40%{transform:translateY(-26px) rotate(-8deg)}}
+  #cast{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:6px}
+  #cast button{background:transparent; border:0; padding:2px 4px; display:flex; flex-direction:column; align-items:center; font-size:.8rem; gap:2px}
+  #cast button.active img{border-color:var(--accent); box-shadow:0 0 0 3px rgba(228,0,43,.18)}
+  #cast{gap:14px}
+  #cast img{width:92px; height:92px; border-radius:50%; background:#fff; border:4px solid #f3c6da; pointer-events:none}
+  #cast button{font-size:.95rem; font-weight:600}
+  body.child #cast img{width:128px; height:128px}
+  body.child #cast button{font-size:1rem}
+  .stage svg{width:100%; height:100%; max-width:600px; min-height:0; cursor:pointer; animation:bob 3s ease-in-out infinite; overflow:visible}
+  @keyframes bob{50%{transform:translateY(-8px)}}
+
+  .panel{position:fixed; top:0; right:0; z-index:30; width:min(400px,100%); height:100%; overflow-y:auto; background:var(--card); border-left:2px solid var(--line); padding:18px; display:flex; flex-direction:column; gap:12px; transform:translateX(105%); transition:transform .3s ease; box-shadow:-10px 0 30px rgba(58,32,48,.15)}
+  body.settings .panel{transform:none}
+  .panel-head{display:flex; align-items:center; gap:8px}
+  .panel-head h1{flex:1}
+  #closePanel{flex:0 0 auto; width:40px; height:40px; padding:0; font-size:1.2rem}
+  #gear{position:fixed; top:12px; right:12px; z-index:20; width:50px; height:50px; padding:0; border-radius:50%; font-size:1.5rem; background:#fff; border:2px solid var(--line); box-shadow:0 2px 8px rgba(58,32,48,.12)}
+  body.child #gear{display:none}
+  /* avisos (pensando, errores) visibles aunque el panel esté cerrado */
+  #toast{position:absolute; top:6px; left:50%; transform:translateX(-50%); max-width:90%; background:rgba(255,255,255,.95); border:2px solid var(--line); border-radius:14px; padding:6px 12px; font-size:.85rem; opacity:0; transition:opacity .3s; pointer-events:none; z-index:5; text-align:center}
+  #toast.on{opacity:1}
+  /* celulares */
+  @media (max-width: 520px){
+    body{padding:8px}
+    .stage{height:calc(100vh - 16px); height:calc(100dvh - 16px); min-height:0; gap:4px 4px}
+    .side{gap:4px}
+    .side button{width:52px; padding:3px 2px; font-size:.55rem; border-radius:12px}
+    .side .e{font-size:1.25rem}
+    .side .wardrobe-btn{width:62px; padding:6px 2px; margin-bottom:2px; font-size:.68rem}
+    .side .wardrobe-btn .e{font-size:2rem}
+    #cast{gap:8px}
+    #cast img{width:66px; height:66px; border-width:3px}
+    body.child #cast img{width:74px; height:74px}
+    body.child .side .e{font-size:1.6rem}
+    body.child .side .wardrobe-btn .e{font-size:2.3rem}
+    #cast button{font-size:.8rem}
+    #wItems button{width:76px}
+    #wItems img{width:62px; height:46px}
+  }
+  h1{font-size:1.3rem; margin:0}
+  label{font-size:.85rem; color:var(--muted); display:block; margin-bottom:4px}
+  textarea,input[type=text],select{width:100%; font:inherit; border:2px solid var(--line); border-radius:12px; padding:10px; background:#fff; color:var(--ink)}
+  textarea{min-height:110px; resize:vertical}
+  .row{display:flex; gap:10px; align-items:center}
+  .row > *{flex:1}
+  button{font:inherit; border:0; border-radius:999px; padding:10px 16px; cursor:pointer; background:var(--bg2); color:var(--ink)}
+  button.primary{background:var(--accent); color:var(--accent-ink); font-weight:600; font-size:1.1rem}
+  button:active{transform:scale(.97)}
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chips button{font-size:.85rem; padding:6px 12px}
+  .fav{display:flex; align-items:center; gap:4px}
+  .fav .x{padding:2px 8px; background:transparent; color:var(--muted)}
+  input[type=range]{width:100%}
+  .hint{font-size:.78rem; color:var(--muted); margin:0}
+
+  /* Minnie */
+  #char{--m:#e4002b; --md:#a3001f; transition:opacity .25s}
+  #char[data-look="pink"]{--m:#ff5fa2; --md:#d63a80}
+  #char[data-look="purple"]{--m:#9b59d0; --md:#6d3a9e}
+  #char.swapOut{opacity:0}
+  .mfill{fill:var(--m)} .mstroke{stroke:var(--md)}
+  #eyes{transform-box:fill-box; transform-origin:center; transition:transform .07s}
+  .blink #eyes{transform:scaleY(.08)}
+  #pupils{transition:transform .35s ease-out}
+  #head{transform-box:view-box; transform-origin:200px 305px}
+  .talking #head{animation:tilt 1.6s ease-in-out infinite}
+  @keyframes tilt{25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
+  #bow{transform-box:view-box; transform-origin:200px 95px}
+  .talking #bow{animation:bow .8s ease-in-out infinite}
+  @keyframes bow{50%{transform:scale(1.06) rotate(2deg)}}
+  #all{transform-box:view-box; transform-origin:200px 520px}
+  .hop #all{animation:hop .6s ease-out}
+  @keyframes hop{30%{transform:translateY(-34px) scaleY(1.03)} 60%{transform:translateY(0) scaleY(.94)} 100%{transform:none}}
+  /* brazos articulados en el hombro; las poses las pone el JS */
+  #armL,#armR,.armline,.reach{transform-box:view-box; transition:transform .45s cubic-bezier(.34,1.3,.64,1)}
+  #armL{transform-origin:156px 326px}
+  #armR{transform-origin:244px 326px}
+  /* balanceo del cuerpo, falda y cola */
+  #sway{transform-box:view-box; transform-origin:200px 516px; animation:sway 4s ease-in-out infinite}
+  .talking #sway{animation-duration:1.8s}
+  @keyframes sway{25%{transform:rotate(-1.5deg)} 75%{transform:rotate(1.5deg)}}
+  #skirt{transform-box:view-box; transform-origin:200px 348px; animation:swish 2.6s ease-in-out infinite}
+  @keyframes swish{25%{transform:skewX(-2.5deg)} 75%{transform:skewX(2.5deg)}}
+  #tail{transform-box:view-box; transform-origin:250px 420px; animation:tail 2.2s ease-in-out infinite}
+  @keyframes tail{50%{transform:rotate(-12deg)}}
+  /* interacción */
+  .stage svg{touch-action:none; -webkit-user-select:none; user-select:none}
+  .grab{cursor:grab}
+  .stretched{filter:drop-shadow(0 0 1.3px rgba(0,0,0,.45))}
+  #happyEyes{display:none}
+  .happy #eyes{display:none}
+  .happy #happyEyes{display:inline}
+  .happy .cheek{opacity:.95}
+  .giggle #sway{animation:giggle .12s linear 5}
+  @keyframes giggle{25%{transform:translateX(-6px) rotate(-2deg)} 75%{transform:translateX(6px) rotate(2deg)}}
+  .bowspin #bow{animation:bowspin .8s cubic-bezier(.34,1.4,.64,1)}
+  @keyframes bowspin{50%{transform:scale(1.25) rotate(-12deg)} 100%{transform:none}}
+  /* acciones */
+  #all{transition:transform .5s cubic-bezier(.34,1.3,.64,1)}
+  .act-sit #all{transform:translateY(46px) scaleY(.97)}
+  .act-sit #legL{transform:rotate(58deg)}
+  .act-sit #legR{transform:rotate(-58deg)}
+  .prop{opacity:0; transition:opacity .4s}
+  .prop.on{opacity:1}
+  .act-jump #all{animation:jump .62s ease-in-out 3}
+  @keyframes jump{15%{transform:scaleY(.88)} 45%{transform:translateY(-95px) scaleY(1.06)} 75%{transform:translateY(0) scaleY(.9)} 100%{transform:none}}
+  .act-spin #all{animation:spin 1.1s ease-in-out 2}
+  @keyframes spin{25%{transform:translateY(-40px) scaleX(.08)} 50%{transform:translateY(-60px) scaleX(-1)} 75%{transform:translateY(-40px) scaleX(-.08)} 100%{transform:none}}
+  .act-sleep #eyes{transform:scaleY(.08)}
+  .act-sleep #head{transform:rotate(9deg); transition:transform .8s}
+  .act-sleep #sway{animation-duration:7s}
+  .dance-long #sway{animation:dance .52s ease-in-out infinite}
+  .dance-long #legL{animation:lift .52s ease-in-out infinite}
+  .dance-long #legR{animation:lift .52s ease-in-out .26s infinite}
+  .dance-long #skirt{animation-duration:.52s}
+  /* baile */
+  #legL,#legR{transform-box:fill-box; transform-origin:50% 0; transition:transform .5s}
+  .dance #sway{animation:dance .5s ease-in-out 5}
+  @keyframes dance{25%{transform:translateY(-10px) rotate(-6deg)} 75%{transform:translateY(-10px) rotate(6deg)}}
+  .dance #legL{animation:lift .5s ease-in-out 5}
+  .dance #legR{animation:lift .5s ease-in-out .25s 5}
+  @keyframes lift{50%{transform:translateY(-12px)}}
+  .dance #skirt{animation-duration:.5s}
+  .heart{position:absolute; pointer-events:none; font-size:28px; animation:float 2.2s ease-out forwards}
+  @keyframes float{from{opacity:1; transform:translateY(0) scale(.6)} to{opacity:0; transform:translateY(-220px) scale(1.3)}}
+
+  /* Modo niña: solo Minnie en pantalla */
+  body.child .panel{display:none}
+  dialog{border:2px solid var(--line); border-radius:20px; padding:18px; max-width:min(92vw,380px); font-family:inherit; color:var(--ink)}
+  dialog::backdrop{background:rgba(58,32,48,.35)}
+  .dlg-actions{display:flex; flex-direction:column; gap:8px; margin-top:14px}
+  .dlg-actions .primary{font-size:1rem}
+  body.eng-eleven .browser-only, body.eng-browser .eleven-only{display:none !important}
+  #exit{display:none; position:fixed; top:10px; right:10px; opacity:.25; background:transparent; font-size:1.4rem}
+  body.child #exit{display:block}
+</style>
+</head>
+<body>
+
+<button id="gear" title="Configuración" aria-label="Configuración">⚙️</button>
+
+<div class="stage" id="stage">
+  <div id="toast" role="status"></div>
+  <div id="actionsL" class="side" aria-label="Armario y acciones"></div>
+  <svg id="char" viewBox="0 0 400 560" role="img" aria-label="Personaje"></svg>
+  <div id="actionsR" class="side" aria-label="Acciones"></div>
+  <div id="bottom">
+  <div id="cast" aria-label="Elegir personaje"></div>
+  <div id="wardrobe" hidden>
+    <div id="wItems"></div>
+    <div id="wFoot">
+      <button id="wRandom">🎲 Sorpresa</button>
+      <button id="wClear">🚫 Sacar todo</button>
+      <button id="wClose" class="primary">✔️ Listo</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<dialog id="saveDlg">
+  <form method="dialog">
+    <p id="dlgMsg" style="margin-top:0"></p>
+    <label for="dlgLabel">Nombre del botón (puede empezar con un emoji)</label>
+    <input type="text" id="dlgLabel">
+    <div class="dlg-actions">
+      <button value="replace" id="dlgReplace" class="primary"></button>
+      <button value="new">Guardar como nueva</button>
+      <button value="cancel">Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<button id="exit" title="Doble toque para volver">⚙️</button>
+
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <h1><span id="charEmoji">🎀</span> <span class="charName">Minnie</span> le habla a <span id="nameLabel">Josefina</span></h1>
+    <button id="closePanel" title="Cerrar" aria-label="Cerrar">✕</button>
+  </div>
+
+  <div>
+    <label for="text">¿Qué le dice <span class="charName">Minnie</span>? (usa {nombre} para su nombre)</label>
+    <textarea id="text" placeholder="¡Hola Josefina! ¿Vamos a lavarnos los dientes juntas?"></textarea>
+  </div>
+
+  <div class="row">
+    <button class="primary" id="speak">🗣️ Hablar</button>
+    <button id="stop" style="flex:0 0 auto">⏹</button>
+    <button id="save" style="flex:0 0 auto" title="Guardar frase">⭐</button>
+  </div>
+  <p class="hint" id="status">Ctrl + Enter también hace hablar a Minnie.</p>
+
+  <div>
+    <label>Frases rápidas</label>
+    <div class="chips" id="presets"></div>
+    <p class="hint">Tip: si una frase termina con una acción entre corchetes, la hace. Ej.: <i>¡Hagamos una fiesta! [bailar]</i>. Acciones: [saltar] [sentarse] [bailar] [malabares] [cantar] [dormir] [vuelta] [aplaudir] [saludar] [cucú] [besito] [abrazo]</p>
+  </div>
+
+  <div>
+    <label>Mis frases nuevas</label>
+    <div class="chips" id="favs"></div>
+    <button id="export" style="margin-top:8px;display:none">📥 Descargar frases.js con mis cambios</button>
+    <p class="hint" id="exportHint" style="display:none">Los cambios (✏️ modificadas y nuevas) están solo en este navegador. Reemplaza el frases.js de la carpeta de la app por el descargado para que queden para siempre y en todos los dispositivos.</p>
+  </div>
+
+  <details>
+    <summary>Ajustes de voz</summary>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+      <div><label for="name">Nombre</label><input type="text" id="name" value="Josefina"></div>
+      <div id="lookRow"><label for="look">Ropa</label><select id="look"></select></div>
+      <div><label for="engine">Motor de voz</label>
+        <select id="engine"><option value="eleven">ElevenLabs (voz de personaje)</option><option value="browser">Voz del navegador (gratis, sin internet)</option></select></div>
+      <div class="eleven-only" style="display:flex;flex-direction:column;gap:10px">
+        <div><label for="elKey">API key de ElevenLabs</label><input type="password" id="elKey" placeholder="sk_..." autocomplete="off"></div>
+        <div><label for="elVoice">Voz de ElevenLabs</label>
+          <div class="row"><select id="elVoice"></select><button id="elLoad" style="flex:0 0 auto">↻</button></div></div>
+        <div><label for="elModel">Modelo</label>
+          <select id="elModel"><option value="eleven_multilingual_v2">Multilingual v2 (mejor calidad)</option><option value="eleven_flash_v2_5">Flash v2.5 (más rápido y barato)</option></select></div>
+        <div><label for="elPitch">Tono de <span class="charName">Minnie</span>: <span id="elPitchV"></span></label><input type="range" id="elPitch" min="0.85" max="1.3" step="0.01"></div>
+        <p class="hint">Cada frase nueva gasta créditos una sola vez: después queda guardada en este navegador.</p>
+        <button id="prepare">⬇️ Preparar todas las voces (frases y juegos)</button>
+      </div>
+      <div class="browser-only"><label for="voice">Voz</label><select id="voice"></select></div>
+      <div class="browser-only"><label for="pitch">Tono (agudo): <span id="pitchV"></span></label><input type="range" id="pitch" min="0.5" max="2" step="0.1"></div>
+      <div class="browser-only"><label for="rate">Velocidad: <span id="rateV"></span></label><input type="range" id="rate" min="0.5" max="1.4" step="0.05"></div>
+      <p class="hint browser-only">Si el tono no cambia, prueba otra voz de la lista: algunas voces ignoran el ajuste de tono.</p>
+    </div>
+  </details>
+
+  <button id="child">👧 Modo Josefina (pantalla completa)</button>
+  <p class="hint">Para jugar: estirar orejas, nariz y pies, hacerle mimos en la cabeza, cosquillas en la panza, tocar el moño o chocar los cinco. Para salir: doble toque en ⚙️ o Esc.</p>
+
+  <!-- dentro del panel a propósito: en modo Josefina no se ve y no se sale sin querer -->
+  <p class="hint" style="text-align:center"><a href="../index.html" style="color:var(--accent)">📚 Volver a los libros de Jose</a></p>
+</div>
+
+<script>
+// frases.js llama a FRASES(`...`) con el texto del archivo
+var FRASES_TXT = null;
+function FRASES(t){ FRASES_TXT = t; }
+</script>
+<script>
+// Cada archivo de characters/ llama a CHARACTER({...}) para registrarse
+window.CHARACTERS = [];
+function CHARACTER(c){ CHARACTERS.push(c); }
+</script>
+<script>
+// wardrobe.js llama a WARDROBE({...}) con todas las prendas
+window.WARDROBE_ITEMS = {};
+function WARDROBE(w){ WARDROBE_ITEMS = w; }
+</script>
+<script src="wardrobe.js"></script>
+<script src="characters/minnie.js"></script>
+<script src="characters/mickey.js"></script>
+<script src="characters/daisy.js"></script>
+<script src="characters/donald.js"></script>
+<script src="frases.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const synth = window.speechSynthesis;
+const svg = $('#char');
+
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('minnie.' + k); return v === null ? d : v; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('minnie.' + k, v); }catch(e){} }
+};
+
+/* ---------- personajes ----------
+   Cada personaje (characters/*.js) trae su dibujo SVG, sus partes elásticas, sus
+   reacciones y su voz. El dibujo debe usar estos ids para que la app lo anime:
+   all, sway, head, eyes, pupils, happyEyes, mouthOpen, mouthClipPath, tongue,
+   armL, armR (hombros en 156,326 y 244,326, o los que diga shoulders) y los de sus partes elásticas.
+   Opcional: jaw (pico de abajo) junto con mouth: { path, tongue, jaw } para otra forma de boca. */
+const CHARS = window.CHARACTERS;
+let CHAR, mouthOpen, mouthClipPath, tongue, jaw, armL, armR, PARTS = {};
+let singLevel = -1; // >= 0 mientras canta
+// Boca de ratón: sonrisa que se abre hacia abajo (o = 0 cerrada, 1 abierta)
+const DEFAULT_MOUTH = {
+  path: o => `M152 252 Q200 292 248 252 Q200 ${(292 + o * 58).toFixed(1)} 152 252 Z`,
+  tongue: o => 282 + o * 20
+};
+function mountCharacter(id){
+  CHAR = CHARS.find(c => c.id === id) || CHARS[0];
+  svg.innerHTML = CHAR.svg;
+  // Estilos propios del personaje (por ejemplo, qué piezas mostrar con cada traje)
+  ($('#charCss') || document.head.appendChild(Object.assign(document.createElement('style'), { id: 'charCss' }))).textContent = CHAR.css || '';
+  svg.setAttribute('aria-label', CHAR.name);
+  // Color base del personaje (si no usa el selector de ropa)
+  for (const [k, v] of Object.entries({ '--m': CHAR.colors?.m, '--md': CHAR.colors?.md }))
+    v ? svg.style.setProperty(k, v) : svg.style.removeProperty(k);
+  mouthOpen = $('#mouthOpen'); mouthClipPath = $('#mouthClipPath'); tongue = $('#tongue'); jaw = $('#jaw');
+  armL = $('#armL'); armR = $('#armR');
+  // Hombros: punto desde donde giran los brazos (por defecto 156,326 y 244,326)
+  const [sl, sr] = CHAR.shoulders || [[156, 326], [244, 326]];
+  armL.style.transformOrigin = `${sl[0]}px ${sl[1]}px`;
+  armR.style.transformOrigin = `${sr[0]}px ${sr[1]}px`;
+  armL.querySelector('.armline')?.style.setProperty('transform-origin', `${sl[0]}px ${sl[1]}px`);
+  armR.querySelector('.armline')?.style.setProperty('transform-origin', `${sr[0]}px ${sr[1]}px`);
+  PARTS = {};
+  for (const [name, p] of Object.entries(CHAR.parts)){
+    PARTS[name] = { ...p, blob: $('#' + p.blob), neck: p.neck && $('#' + p.neck), line: p.line && $('#' + p.line),
+                    o: { x: 0, y: 0 }, v: { x: 0, y: 0 }, drag: false };
+  }
+  store.set('char', CHAR.id);
+}
+// Datos de la versión anterior (solo existía Minnie)
+if (store.get('elVoice.minnie', null) === null && store.get('elVoice', null) !== null) store.set('elVoice.minnie', store.get('elVoice', ''));
+if (store.get('look.minnie', null) === null && store.get('look', null) !== null) store.set('look.minnie', store.get('look', 'red'));
+mountCharacter(store.get('char', 'minnie'));
+
+// {nombre} = nombre de la niña; {o|a} = según el personaje (orgullos{o|a} -> orgulloso / orgullosa)
+function fillText(raw){
+  const name = $('#name').value.trim() || 'Josefina';
+  return String(raw || '').replace(/\{nombre\}/gi, name)
+    .replace(/\{([^{}|]*)\|([^{}|]*)\}/g, (_, m, f) => CHAR.female ? f : m).trim();
+}
+
+const PRESETS = [
+  ['🪥 Dientes', '¡Hola {nombre}! Es hora de lavarse los dientes. ¡Vamos a dejarlos brillantes como estrellitas!'],
+  ['😴 A dormir', '{nombre}, ya es de noche y hasta los ratoncitos se van a dormir. ¡Que sueñes cosas lindas!'],
+  ['🥦 Verduras', '¿Sabés una cosa, {nombre}? Las verduras te hacen fuerte y feliz. ¡Probá un bocadito por mí!'],
+  ['🧸 Juguetes', '¡{nombre}! ¿Me ayudás a guardar los juguetes? ¡Hagamos una carrera a ver quién guarda más!'],
+  ['🛁 Baño', '¡Llegó la hora del baño, {nombre}! Mucha espuma y muchas burbujas. ¡Qué divertido!'],
+  ['❤️ Te quiero', '{nombre}, te quiero muchísimo. ¡Sos una niña maravillosa!'],
+  ['🎉 ¡Bravo!', '¡Bravo {nombre}! ¡Lo hiciste muy, muy bien! Estoy muy orgullos{o|a} de vos.']
+];
+
+/* ---------- voces ---------- */
+const MALE = /jorge|pablo|ra[uú]l|[aá]lvaro|tom[aá]s|mateo|gonzalo|lorenzo|diego|emilio|dar[ií]o|federico|gerardo|andr[eé]s|jorge|alonso|carlos|juan/i;
+function bestVoice(list){
+  const fem = /paulina|sabina|dalia|elena|helena|monica|mónica|laura|luc[ií]a|valentina|elvira|ximena|google español/i;
+  const latam = /es[-_](419|mx|ar|uy|us|co|cl)/i;
+  const natural = /natural|neural|online/i;
+  return list.find(v => natural.test(v.name) && fem.test(v.name) && latam.test(v.lang))
+      || list.find(v => natural.test(v.name) && fem.test(v.name))
+      || list.find(v => fem.test(v.name) && latam.test(v.lang))
+      || list.find(v => fem.test(v.name))
+      || list.find(v => latam.test(v.lang))
+      || list[0];
+}
+function loadVoices(){
+  const all = synth.getVoices();
+  const es = all.filter(v => v.lang.toLowerCase().startsWith('es'));
+  const list = es.length ? es : all;
+  const sel = $('#voice');
+  sel.innerHTML = '';
+  list.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.name; o.textContent = `${v.name} (${v.lang})`;
+    sel.appendChild(o);
+  });
+  const pick = list.find(v => v.name === store.get('voice', '')) || bestVoice(list);
+  if (pick) sel.value = pick.name;
+}
+loadVoices();
+synth.onvoiceschanged = loadVoices;
+
+/* ---------- ajustes ---------- */
+function bindRange(id, def){
+  const el = $('#' + id), out = $('#' + id + 'V');
+  el.value = store.get(id, def);
+  const show = () => { out.textContent = el.value; store.set(id, el.value); };
+  el.oninput = show; show();
+}
+bindRange('pitch', '1.9');
+bindRange('rate', '0.95');
+$('#voice').onchange = e => store.set('voice', e.target.value);
+// Vuelve a "Josefina" si quedó guardado el diminutivo que se probó
+if (store.get('name', null) === 'Jose') store.set('name', 'Josefina');
+try{ localStorage.removeItem('minnie.say'); }catch(e){}
+$('#name').value = store.get('name', 'Josefina');
+const syncName = () => {
+  $('#nameLabel').textContent = $('#name').value || 'Josefina';
+  store.set('name', $('#name').value);
+  if (CHAR) document.title = `${CHAR.name} para ${$('#name').value.trim() || 'Josefina'}`;
+};
+$('#name').oninput = syncName; syncName();
+
+/* ---------- ElevenLabs: ajustes ---------- */
+const EL_API = 'https://api.elevenlabs.io/v1';
+// El tono se guarda por personaje (así dos personajes pueden compartir una voz)
+$('#elPitch').oninput = () => { $('#elPitchV').textContent = $('#elPitch').value; store.set('elPitch.' + CHAR.id, $('#elPitch').value); };
+$('#engine').value = store.get('engine', 'eleven');
+const applyEngine = () => {
+  const e = $('#engine').value;
+  document.body.classList.toggle('eng-eleven', e === 'eleven');
+  document.body.classList.toggle('eng-browser', e === 'browser');
+  store.set('engine', e);
+};
+$('#engine').onchange = applyEngine; applyEngine();
+$('#elKey').value = store.get('elKey', '');
+$('#elModel').value = store.get('elModel', 'eleven_multilingual_v2');
+$('#elModel').onchange = e => store.set('elModel', e.target.value);
+$('#elVoice').onchange = e => store.set('elVoice.' + CHAR.id, e.target.value);
+
+// Voces de la cuenta de ElevenLabs (se guardan para mostrarlas sin internet)
+let elVoices = readJSON('elVoices', []);
+// Voz del personaje: la elegida, o una cuyo nombre lo contenga ("Mickey Mouse"), o la de su archivo
+function charVoiceId(){
+  const saved = store.get('elVoice.' + CHAR.id, null);
+  if (saved !== null) return saved;
+  const byName = elVoices.find(v => v.name.toLowerCase().includes(CHAR.name.toLowerCase()));
+  return byName ? byName.voice_id : (CHAR.voiceId || '');
+}
+function renderVoiceSelect(){
+  const sel = $('#elVoice'), cur = charVoiceId();
+  const list = [...elVoices];
+  if (cur && !list.some(v => v.voice_id === cur)) list.unshift({ voice_id: cur, name: 'Voz de ' + CHAR.name });
+  sel.innerHTML = '<option value="">— sin voz (usa la del navegador) —</option>';
+  list.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.voice_id; o.textContent = v.name;
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+}
+
+async function loadElevenVoices(){
+  const key = $('#elKey').value.trim();
+  if (!key) return;
+  try{
+    const r = await fetch(EL_API + '/voices', { headers: { 'xi-api-key': key } });
+    if (!r.ok) throw new Error(r.status);
+    const { voices } = await r.json();
+    // Primero las voces propias (diseñadas o clonadas por el usuario)
+    voices.sort((a, b) => (a.category === 'premade') - (b.category === 'premade'));
+    elVoices = voices.map(v => ({ voice_id: v.voice_id, name: v.name }));
+    store.set('elVoices', JSON.stringify(elVoices));
+    renderVoiceSelect();
+  }catch(e){ status('No pude cargar las voces: revisa la API key.'); }
+}
+$('#elKey').onchange = () => { store.set('elKey', $('#elKey').value.trim()); loadElevenVoices(); };
+$('#elLoad').onclick = loadElevenVoices;
+loadElevenVoices();
+
+let toastTimer = 0;
+function status(msg){
+  $('#status').textContent = msg || `Ctrl + Enter también hace hablar a ${CHAR.name}.`;
+  const t = $('#toast');
+  clearTimeout(toastTimer);
+  if (msg){ t.textContent = msg; t.classList.add('on'); toastTimer = setTimeout(() => t.classList.remove('on'), msg.includes('pensando') ? 8000 : 4000); }
+  else t.classList.remove('on');
+}
+
+/* ---------- ElevenLabs: caché de audios (IndexedDB) ---------- */
+let dbP = null;
+function db(){
+  if (!dbP) dbP = new Promise((res, rej) => {
+    const q = indexedDB.open('minnie-audio', 1);
+    q.onupgradeneeded = () => q.result.createObjectStore('clips');
+    q.onsuccess = () => res(q.result);
+    q.onerror = () => rej(q.error);
+  });
+  return dbP;
+}
+async function cacheGet(k){
+  try{
+    const d = await db();
+    return await new Promise(res => { const q = d.transaction('clips').objectStore('clips').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(null); });
+  }catch(e){ return null; }
+}
+async function cachePut(k, blob){
+  try{ const d = await db(); d.transaction('clips', 'readwrite').objectStore('clips').put(blob, k); }catch(e){}
+}
+
+/* ---------- ElevenLabs: reproducir ---------- */
+let audioCtx = null, analyser = null, currentSrc = null, speakToken = 0;
+const levels = new Float32Array(1024);
+
+// Devuelve el audio de una frase: del caché o pidiéndolo a ElevenLabs
+async function getClip(text, quiet){
+  const key = $('#elKey').value.trim();
+  const voiceId = $('#elVoice').value, model = $('#elModel').value;
+  if (!voiceId) throw new Error(`${CHAR.name} todavía no tiene voz de ElevenLabs`);
+  const ck = `${voiceId}|${model}|${text}`;
+  // Las frases ya guardadas suenan aunque no haya clave, créditos ni internet
+  let blob = await cacheGet(ck);
+  if (!blob){
+    if (!key) throw new Error('Falta la API key de ElevenLabs (en Ajustes de voz)');
+    if (!navigator.onLine) throw new Error('Sin internet');
+    if (!quiet) status(`${CHAR.name} está pensando… 💭`);
+    const r = await fetch(`${EL_API}/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
+      method: 'POST',
+      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
+      body: JSON.stringify({
+        text, model_id: model,
+        voice_settings: { stability: 0.35, similarity_boost: 0.8, style: 0.45, use_speaker_boost: true }
+      })
+    });
+    if (!r.ok){
+      let msg = r.status;
+      try{ msg = (await r.json()).detail?.message || msg; }catch(e){}
+      throw new Error('ElevenLabs: ' + msg);
+    }
+    blob = await r.blob();
+    await cachePut(ck, blob);
+  }
+  return blob;
+}
+
+async function speakEleven(text, token, forcedGesture){
+  const blob = await getClip(text);
+  if (token !== speakToken) return;
+  status();
+  const buf = await audioCtx.decodeAudioData(await blob.arrayBuffer());
+  if (token !== speakToken) return;
+  const src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.playbackRate.value = +$('#elPitch').value;
+  const an = audioCtx.createAnalyser();
+  an.fftSize = 1024;
+  src.connect(an).connect(audioCtx.destination);
+  src.onended = () => {
+    if (currentSrc !== src) return;
+    currentSrc = null; analyser = null;
+    setTalking(false); hearts();
+  };
+  currentSrc = src; analyser = an;
+  setTalking(true);
+  gesture(forcedGesture || gestureFor(text));
+  src.start();
+}
+function stopAll(){
+  speakToken++;
+  synth.cancel();
+  if (currentSrc){ const s = currentSrc; currentSrc = null; analyser = null; try{ s.stop(); }catch(e){} }
+  cancelGestures();
+  setTalking(false);
+}
+
+/* ---------- animación ---------- */
+let talking = false, mouth = 0, target = 0, nextChange = 0;
+function frame(t){
+  if (singLevel >= 0){
+    // Cantando: abre la boca en cada nota y la va cerrando
+    target = singLevel;
+    singLevel = Math.max(0.12, singLevel * 0.93);
+  } else if (analyser){
+    // Boca sincronizada con el volumen real del audio
+    analyser.getFloatTimeDomainData(levels);
+    let sum = 0;
+    for (let i = 0; i < levels.length; i++) sum += levels[i] * levels[i];
+    const rms = Math.sqrt(sum / levels.length);
+    target = Math.min(1, Math.max(0, (rms - 0.015) * 7));
+  } else if (talking){
+    if (t > nextChange){
+      target = Math.random() < 0.2 ? 0.1 : 0.35 + Math.random() * 0.65;
+      nextChange = t + 70 + Math.random() * 90;
+    }
+  } else target = 0;
+  mouth += (target - mouth) * 0.35;
+  // Cada personaje puede traer su boca (los patos abren el pico: "jaw" baja)
+  const m = CHAR.mouth || DEFAULT_MOUTH;
+  const d = m.path(mouth);
+  mouthOpen.setAttribute('d', d);
+  mouthClipPath.setAttribute('d', d);
+  tongue.setAttribute('cy', m.tongue(mouth).toFixed(1));
+  if (jaw) jaw.setAttribute('transform', `translate(0 ${(mouth * (m.jaw || 0)).toFixed(1)})`);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+function blink(){
+  svg.classList.add('blink');
+  setTimeout(() => svg.classList.remove('blink'), 140);
+  setTimeout(blink, 2200 + Math.random() * 3000);
+}
+setTimeout(blink, 1500);
+
+// Mira a su alrededor de vez en cuando
+function look(){
+  if (!$('#pupils')){ setTimeout(look, 1000); return; }
+  const x = talking ? 0 : (Math.random() * 8 - 4), y = talking ? 2 : (Math.random() * 8 - 3);
+  $('#pupils').style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+  setTimeout(look, 1500 + Math.random() * 2500);
+}
+look();
+
+function hop(){
+  svg.classList.remove('hop'); void svg.getBBox();
+  svg.classList.add('hop');
+  setTimeout(() => svg.classList.remove('hop'), 650);
+}
+
+const applyLook = () => { svg.dataset.look = $('#look').value; store.set('look.' + CHAR.id, $('#look').value); };
+$('#look').onchange = applyLook;
+
+/* ---------- gestos con los brazos ---------- */
+// Ángulos en grados: brazo izquierdo positivo = hacia afuera/arriba, derecho negativo = hacia afuera/arriba.
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let gestureBusy = false, gestureToken = 0;
+
+function pose(l, r, ms = 450, s = 1){
+  armL.style.transitionDuration = armR.style.transitionDuration = ms + 'ms';
+  // Largo del brazo: s si viene dado; si no, los brazos "de manguera" (raiseScale) se estiran
+  // cuanto más apuntan hacia arriba
+  const sh = CHAR.shoulders || [[156, 326], [244, 326]], hands = CHAR.hands || [[112, 396], [288, 396]];
+  const len = (a, i) => {
+    if (s !== 1) return s;
+    const t = Math.atan2(hands[i][1] - sh[i][1], hands[i][0] - sh[i][0]) + a * Math.PI / 180;
+    return 1 + ((CHAR.raiseScale || 1) - 1) * Math.max(0, -Math.sin(t));
+  };
+  [[armL, l], [armR, r]].forEach(([arm, a], i) => {
+    const k = len(a, i), line = arm.querySelector('.armline'), reach = arm.querySelector('.reach');
+    let extra = '';
+    if (line && reach){
+      // Se alarga la línea del brazo y el guante se corre hasta la punta (sin agrandarse)
+      line.style.transitionDuration = reach.style.transitionDuration = ms + 'ms';
+      line.style.transform = `scale(${k.toFixed(3)})`;
+      reach.style.transform = `translate(${((k - 1) * (hands[i][0] - sh[i][0])).toFixed(1)}px, ${((k - 1) * (hands[i][1] - sh[i][1])).toFixed(1)}px)`;
+    } else if (k !== 1) extra = ` scale(${k.toFixed(3)})`;
+    arm.style.transform = `rotate(${a}deg)${extra}`;
+  });
+}
+// Cada paso: [izq, der, duración, pausa, acción opcional]
+const GESTURES = {
+  wave: () => { const w = CHAR.waveAngle ?? 135, v = w - 27; return [[0,-w,400,0],[0,-v,200],[0,-w,200],[0,-v,200],[0,-w,200],[0,0,450]]; },
+  clap: [[-50,50,300],[-64,64,120],[-48,48,120],[-64,64,120],[-48,48,120],[-64,64,120],[-48,48,120],[0,0,450]],
+  hug:  [[75,-75,500,500],[-45,45,550,700],[0,0,500]],
+  kiss: () => [[0, CHAR.kissAngle ?? 164, 550, 250, null, CHAR.kissScale], [0, -60, 350, 350, () => mouthHeart()], [0, 0, 500]],
+  joy:  [[118,-118,350,150],[100,-100,200],[118,-118,200],[100,-100,200],[0,0,450]],
+  highL:[[150,0,280,500],[0,0,450]],
+  highR:[[0,-150,280,500],[0,0,450]],
+  dance:[[60,-20,250],[20,-60,250],[60,-20,250],[20,-60,250],[60,-20,250],[0,0,400]]
+};
+async function gesture(name){
+  const g = GESTURES[name]; if (!g) return;
+  const seq = typeof g === 'function' ? g() : g;
+  const tk = ++gestureToken;
+  gestureBusy = true;
+  if (name === 'dance'){ svg.classList.add('dance'); setTimeout(() => svg.classList.remove('dance'), 2600); }
+  if (name === 'joy') hop();
+  for (const [l, r, ms, hold = 0, fn, sc] of seq){
+    if (tk !== gestureToken) return;
+    pose(l, r, ms, sc ?? 1); fn?.();
+    await sleep(ms + hold);
+  }
+  if (tk === gestureToken) gestureBusy = false;
+}
+function cancelGestures(){ gestureToken++; gestureBusy = false; svg.classList.remove('dance'); pose(0, 0, 400); }
+
+// Elige un gesto según lo que dice la frase
+function gestureFor(text){
+  const t = text.toLowerCase();
+  if (/bravo|muy bien|felicitaciones|lo lograste|campeona|excelente/.test(t)) return 'clap';
+  if (/abrazo/.test(t)) return 'hug';
+  if (/beso|te quiero|te amo/.test(t)) return 'kiss';
+  if (/baila|fiesta|jugar|divertid|carrera|yupi|hurra/.test(t)) return 'dance';
+  if (/^¡?\s*(hola|chau|adiós|adios|buen[oa]s)/.test(t)) return 'wave';
+  return ['wave', 'joy', null][Math.floor(Math.random() * 3)];
+}
+
+// Mientras habla gesticula; en reposo, mueve los brazos apenas
+const TALK_POSES = [[28,-6],[6,-34],[34,-34],[-22,22],[42,-10],[10,-46],[18,-18]];
+let idleTick = 0;
+setInterval(() => {
+  if (gestureBusy) return;
+  if (talking){
+    const [l, r] = TALK_POSES[Math.floor(Math.random() * TALK_POSES.length)];
+    pose(l, r, 420);
+  } else if (++idleTick % 3 === 0){
+    pose(Math.random() * 10 - 3, -(Math.random() * 10 - 3), 1400);
+  }
+}, 850);
+
+function mouthHeart(){
+  const stage = $('#stage'), sr = stage.getBoundingClientRect(), r = svg.getBoundingClientRect();
+  const h = document.createElement('span');
+  h.className = 'heart'; h.textContent = '💋';
+  h.style.left = (r.left - sr.left + r.width * 0.62) + 'px';
+  h.style.top = (r.top - sr.top + r.height * 0.45) + 'px';
+  stage.appendChild(h);
+  setTimeout(() => h.remove(), 2300);
+}
+function hearts(){
+  const stage = $('#stage'), r = stage.getBoundingClientRect();
+  for (let i = 0; i < 6; i++){
+    setTimeout(() => {
+      const h = document.createElement('span');
+      h.className = 'heart';
+      h.textContent = ['❤️','💖','💕','✨'][i % 4];
+      h.style.left = (r.width / 2 - 120 + Math.random() * 240) + 'px';
+      h.style.top = (r.height * 0.35) + 'px';
+      stage.appendChild(h);
+      setTimeout(() => h.remove(), 2300);
+    }, i * 150);
+  }
+}
+function setTalking(on){
+  talking = on;
+  svg.classList.toggle('talking', on);
+}
+
+/* ---------- hablar ---------- */
+function speak(raw, forcedGesture, fromAction){
+  // "¡Hagamos una fiesta! [bailar]" -> dice la frase y baila
+  const tag = !fromAction && String(raw || '').match(/\[([^\]]+)\]/);
+  if (tag && findAction(tag[1])){
+    const rest = String(raw).replace(tag[0], '').trim();
+    runAction(tag[1], rest || undefined);
+    return;
+  }
+  if (!fromAction) cancelAction();
+  const text = fillText(raw);
+  if (!text) return;
+  stopAll();
+  const token = speakToken;
+  if ($('#engine').value === 'eleven'){
+    // El AudioContext se crea dentro del toque para que el navegador permita el sonido
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx.resume();
+    speakEleven(text, token, forcedGesture).catch(err => {
+      if (token !== speakToken) return;
+      status('⚠️ ' + err.message + ' — uso la voz del navegador.');
+      speakBrowser(text, forcedGesture);
+    });
+    return;
+  }
+  speakBrowser(text, forcedGesture);
+}
+
+function speakBrowser(text, forcedGesture){
+  // Frases cortas: evita que Chrome corte textos largos
+  const parts = text.split(/(?<=[.!?…])\s+/).filter(Boolean);
+  const es = synth.getVoices().filter(v => v.lang.toLowerCase().startsWith('es'));
+  const male = !CHAR.female && (es.find(v => /natural|online/i.test(v.name) && MALE.test(v.name)) || es.find(v => MALE.test(v.name)));
+  const voice = male || synth.getVoices().find(v => v.name === $('#voice').value);
+  let pending = parts.length;
+  const done = () => { if (--pending <= 0){ setTalking(false); hearts(); } };
+  let started = false;
+  parts.forEach(p => {
+    const u = new SpeechSynthesisUtterance(p);
+    if (voice){ u.voice = voice; u.lang = voice.lang; } else u.lang = 'es-419';
+    u.pitch = +$('#pitch').value;
+    u.rate = +$('#rate').value;
+    u.onstart = () => { setTalking(true); if (!started){ started = true; gesture(forcedGesture || gestureFor(text)); } };
+    u.onboundary = () => { target = 1; };
+    u.onend = done;
+    u.onerror = done;
+    synth.speak(u);
+  });
+}
+
+$('#speak').onclick = () => speak($('#text').value);
+$('#stop').onclick = () => { cancelAction(); stopAll(); };
+$('#text').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) speak($('#text').value); });
+/* ---------- jugar con Minnie: estirar, mimos, cosquillas ---------- */
+const pick = a => a[Math.floor(Math.random() * a.length)];
+let lastReact = -Infinity;
+function react(kind, forcedGesture){
+  const now = performance.now();
+  const list = CHAR.reactions[kind] || WEAR_SAY[kind];
+  if (!list || talking || actionRunning || now - lastReact < 1500) return;
+  lastReact = now;
+  speak(pick(list), forcedGesture);
+}
+
+
+function renderPart(p){
+  const { x, y } = p.o, len = Math.hypot(x, y);
+  // Contorno suave mientras está estirada (los cachetes blancos se ven sobre la cara blanca)
+  const g = p.group || (p.group = p.blob.closest('[data-part]'));
+  g.classList.toggle('stretched', len > 2);
+  if (p.line){
+    // Pie: la pierna se estira hasta el zapato
+    p.line.setAttribute('d', `M${p.hip[0]} ${p.hip[1]} L${(p.ankle[0] + x).toFixed(1)} ${(p.ankle[1] + y).toFixed(1)}`);
+    p.blob.setAttribute('transform', len < .3 ? '' : `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(x * 0.2).toFixed(1)} ${p.cx} ${p.cy})`);
+    return;
+  }
+  if (len < .3){ p.blob.removeAttribute('transform'); p.neck.setAttribute('d', ''); return; }
+  // La parte se alarga en la dirección del estirón y se afina (como goma)
+  const deg = Math.atan2(y, x) * 180 / Math.PI, sx = 1 + len / (p.r * 6), sy = 1 / Math.sqrt(sx);
+  p.blob.setAttribute('transform', `translate(${p.cx + x} ${p.cy + y}) rotate(${deg}) scale(${sx} ${sy}) rotate(${-deg}) translate(${-p.cx} ${-p.cy})`);
+  // "Cuello" redondeado que une la parte estirada con la base (como goma)
+  const f = Math.min(1, len / 40), w = (p.w0 ? p.w0 * 2 : p.r * 1.1) * f;
+  p.neck.setAttribute('d', `M${p.base[0]} ${p.base[1]} L${p.cx + x} ${p.cy + y}`);
+  p.neck.setAttribute('stroke-width', w.toFixed(1));
+}
+
+// Resorte: al soltar, la parte vuelve rebotando
+let lastPhys = performance.now();
+function physics(t){
+  const dt = Math.min(0.033, (t - lastPhys) / 1000); lastPhys = t;
+  for (const p of Object.values(PARTS)){
+    if (!p.drag){
+      const K = 260, C = 11;
+      p.v.x += (-K * p.o.x - C * p.v.x) * dt; p.v.y += (-K * p.o.y - C * p.v.y) * dt;
+      p.o.x += p.v.x * dt; p.o.y += p.v.y * dt;
+      if (Math.abs(p.o.x) + Math.abs(p.o.y) + Math.abs(p.v.x) + Math.abs(p.v.y) < 0.05) p.o.x = p.o.y = p.v.x = p.v.y = 0;
+    }
+    renderPart(p);
+  }
+  requestAnimationFrame(physics);
+}
+requestAnimationFrame(physics);
+
+/* ---------- sonidos ---------- */
+function ensureAudio(){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx.resume();
+  }catch(e){}
+  return audioCtx;
+}
+function tone(type, from, to, dur, vol = .2, wobble = 0){
+  const ctx = ensureAudio(); if (!ctx) return;
+  const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(from, t);
+  o.frequency.exponentialRampToValueAtTime(to, t + dur);
+  if (wobble){
+    const l = ctx.createOscillator(), lg = ctx.createGain();
+    l.frequency.value = 16; lg.gain.value = wobble;
+    l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur);
+  }
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(ctx.destination);
+  o.start(t); o.stop(t + dur);
+}
+const sfx = {
+  boing: len => tone('sine', 140, 420 + len * 2, .45, .25, 60),
+  pop:   () => tone('triangle', 900, 300, .12, .2),
+  honk:  () => { tone('square', 520, 480, .09, .08); setTimeout(() => tone('square', 620, 560, .09, .08), 110); },
+  clap:  () => tone('triangle', 1800, 600, .08, .25),
+  giggle:() => [0, 90, 180].forEach((d, i) => setTimeout(() => tone('sine', 900 + i * 120, 700, .08, .12), d))
+};
+
+/* ---------- preparar voces: genera y guarda todas las frases de una vez ---------- */
+$('#prepare').onclick = async () => {
+  const all = [...currentPhrases(), ...getFavs()].map(p => p.text)
+    .concat(Object.values(CHAR.reactions).flat(), ACTION_TEXTS, Object.values(WEAR_SAY).flat());
+  const texts = [...new Set(all.map(fillText))];
+  const btn = $('#prepare'); btn.disabled = true;
+  let ok = 0, fail = 0;
+  for (const [i, t] of texts.entries()){
+    status(`Preparando voces… ${i + 1} de ${texts.length}`);
+    try{ await getClip(t, true); ok++; }
+    catch(e){ fail++; if (fail === 1) status('⚠️ ' + e.message); if (/key|internet|quota|credit/i.test(e.message)) break; }
+  }
+  btn.disabled = false;
+  status(fail ? `Listas ${ok} de ${texts.length}. Algunas fallaron (¿créditos o internet?).` : `✔️ Listas las ${ok} voces: ya funcionan sin gastar créditos ni internet.`);
+};
+
+/* ---------- reacciones ---------- */
+function flash(cls, ms){ svg.classList.remove(cls); void svg.getBBox(); svg.classList.add(cls); setTimeout(() => svg.classList.remove(cls), ms); }
+function pet(){
+  flash('happy', 2600);
+  hearts();
+  react('pet', 'hug');
+}
+function tap(name){
+  switch (name){
+    case 'tummy': sfx.giggle(); flash('giggle', 650); react('tummy', 'none'); break;
+    case 'bow':   sfx.pop(); flash('bowspin', 850); react('bow', 'none'); break;
+    // Primero habla (speak corta los gestos en curso) y después levanta la mano
+    case 'handL': sfx.clap(); react('hand', 'none'); gesture('highL'); break;
+    case 'handR': sfx.clap(); react('hand', 'none'); gesture('highR'); break;
+    case 'nose':  sfx.honk(); react('nose', 'none'); break;
+    case 'hat':   sfx.pop(); flash('hatpop', 750); react('hat', 'none'); break;
+    case 'glasses': sfx.pop(); react('glasses'); break;
+    case 'earL': case 'earR': sfx.pop(); flash('bowspin', 850); react('ear'); break;
+    case 'footL': case 'footR': hop(); react('foot'); break;
+    default:      hop(); react('head');
+  }
+}
+
+// Minnie mira hacia el dedo mientras juegan
+function lookAt(pt){
+  const x = Math.max(-5, Math.min(5, (pt.x - 200) / 30)), y = Math.max(-4, Math.min(5, (pt.y - 200) / 40));
+  $('#pupils').style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+}
+
+const toSVG = e => {
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+};
+let touch = null;
+svg.addEventListener('pointerdown', e => {
+  const el = e.target.closest('[data-part]'); if (!el) return;
+  e.preventDefault();
+  ensureAudio();
+  const name = el.dataset.part, pt = toSVG(e), part = PARTS[name];
+  touch = { name, part, el, start: pt, last: pt, moved: 0, petMoved: 0 };
+  if (part){ part.drag = true; part.v = { x: 0, y: 0 }; el.style.cursor = 'grabbing'; }
+  svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener('pointermove', e => {
+  if (!touch) return;
+  const pt = toSVG(e), step = Math.hypot(pt.x - touch.last.x, pt.y - touch.last.y);
+  touch.moved += step; touch.last = pt;
+  lookAt(pt);
+  const p = touch.part;
+  if (p){
+    // Cuanto más se estira, más cuesta (efecto goma)
+    const rx = pt.x - touch.start.x, ry = pt.y - touch.start.y, len = Math.hypot(rx, ry);
+    const f = len ? p.max * (1 - Math.exp(-len / p.max)) / len : 0;
+    p.o = { x: rx * f, y: ry * f };
+  } else if (touch.name === 'head'){
+    // Caricia: pasar el dedo por la cabeza
+    touch.petMoved += step;
+    if (touch.petMoved > 260){ touch.petMoved = -400; pet(); }
+  }
+});
+function endTouch(){
+  if (!touch) return;
+  const t = touch; touch = null;
+  if (t.part){
+    t.part.drag = false; t.el.style.cursor = '';
+    const len = Math.hypot(t.part.o.x, t.part.o.y);
+    if (len > 25){
+      sfx.boing(len);
+      if (t.part.kind === 'foot'){ hop(); react('foot'); }
+      else react(t.part.kind);
+      return;
+    }
+  }
+  if (t.moved < 14) tap(t.name);
+}
+svg.addEventListener('pointerup', endTouch);
+svg.addEventListener('pointercancel', endTouch);
+
+/* ---------- frases ---------- */
+// Formato de cada línea de frases.js:  Texto del botón | Lo que dice Minnie
+function parsePhrases(txt){
+  return txt.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(l => {
+    const i = l.indexOf('|');
+    return i < 0 ? { label: shortLabel(l), text: l } : { label: l.slice(0, i).trim(), text: l.slice(i + 1).trim() };
+  }).filter(p => p.text);
+}
+function shortLabel(t){ const w = t.split(/\s+/).slice(0, 3).join(' '); return w.length > 22 ? w.slice(0, 22) + '…' : w; }
+
+const FILE_PHRASES = FRASES_TXT ? parsePhrases(FRASES_TXT) : PRESETS.map(([label, text]) => ({ label, text }));
+
+// Cambios hechos desde la app, pendientes de pasar a frases.js:
+//  - edits: frases del archivo modificadas  { textoOriginal: {label, text} }
+//  - favs:  frases nuevas                   [{label, text}]
+function readJSON(k, d){ try{ return JSON.parse(store.get(k, '')) ?? d; }catch(e){ return d; } }
+function getEdits(){ return readJSON('edits', {}); }
+function setEdits(e){ store.set('edits', JSON.stringify(e)); }
+function getFavs(){
+  // Las frases viejas eran solo texto: se convierten a {label, text}
+  return readJSON('favs', []).map(f => typeof f === 'string' ? { label: '⭐ ' + shortLabel(f), text: f } : f);
+}
+function setFavs(a){ store.set('favs', JSON.stringify(a)); }
+
+// Frases del archivo con las modificaciones aplicadas
+function currentPhrases(){
+  const edits = getEdits();
+  return FILE_PHRASES.map(p => edits[p.text] ? { ...edits[p.text], original: p } : p);
+}
+
+// De qué botón vino el texto que está en el cuadro
+let loaded = null; // { kind: 'file' | 'fav', key, label, text }
+function use(kind, key, p){
+  loaded = { kind, key, label: p.label, text: p.text };
+  $('#text').value = p.text;
+  speak(p.text);
+}
+
+function chip(p, onClick, onX, xTitle){
+  const w = document.createElement('span'); w.className = 'fav';
+  const b = document.createElement('button');
+  b.textContent = p.label; b.title = p.text; b.onclick = onClick;
+  w.appendChild(b);
+  if (onX){
+    const x = document.createElement('button'); x.className = 'x';
+    x.textContent = xTitle === 'Deshacer cambio' ? '↩' : '✕';
+    x.title = xTitle; x.onclick = onX;
+    w.appendChild(x);
+  }
+  return w;
+}
+
+function renderPhrases(){
+  // Limpia cambios que ya se pasaron a frases.js
+  const fileTexts = new Set(FILE_PHRASES.map(p => p.text));
+  const edits = getEdits();
+  for (const k of Object.keys(edits)) if (!fileTexts.has(k)) delete edits[k];
+  setEdits(edits);
+  const favs = getFavs().filter(f => !fileTexts.has(f.text));
+  setFavs(favs);
+
+  const box = $('#presets'); box.innerHTML = '';
+  currentPhrases().forEach(p => {
+    const key = p.original ? p.original.text : p.text;
+    box.appendChild(p.original
+      ? chip({ label: '✏️ ' + p.label, text: p.text }, () => use('file', key, p),
+             () => { const e = getEdits(); delete e[key]; setEdits(e); renderPhrases(); }, 'Deshacer cambio')
+      : chip(p, () => use('file', key, p)));
+  });
+
+  const fbox = $('#favs'); fbox.innerHTML = '';
+  if (!favs.length) fbox.innerHTML = '<p class="hint">Escribe una frase y toca ⭐ para agregarla.</p>';
+  favs.forEach(f => fbox.appendChild(chip(f, () => use('fav', f.text, f),
+    () => { setFavs(getFavs().filter(x => x.text !== f.text)); renderPhrases(); }, 'Borrar')));
+
+  const pending = favs.length + Object.keys(edits).length;
+  $('#export').style.display = $('#exportHint').style.display = pending ? '' : 'none';
+}
+
+/* ---------- guardar: reemplazar o nueva ---------- */
+$('#save').onclick = () => {
+  const t = $('#text').value.trim(); if (!t) return;
+  const dlg = $('#saveDlg');
+  const fromBtn = loaded && loaded.text !== t ? loaded : null;
+  if (loaded && loaded.text === t){ status('Esa frase ya está guardada en «' + loaded.label + '».'); return; }
+  $('#dlgMsg').textContent = fromBtn
+    ? `Modificaste la frase de «${fromBtn.label}». ¿Qué quieres hacer?`
+    : 'Guardar esta frase como un botón nuevo.';
+  $('#dlgReplace').style.display = fromBtn ? '' : 'none';
+  $('#dlgReplace').textContent = fromBtn ? `Reemplazar «${fromBtn.label}»` : '';
+  $('#dlgLabel').value = fromBtn ? fromBtn.label : '⭐ ' + shortLabel(t);
+  pendingSave = action => {
+    const label = $('#dlgLabel').value.replace(/\|/g, '/').trim() || shortLabel(t);
+    if (action === 'replace' && fromBtn.kind === 'file'){
+      const e = getEdits(); e[fromBtn.key] = { label, text: t }; setEdits(e);
+    } else if (action === 'replace'){
+      setFavs(getFavs().map(f => f.text === fromBtn.key ? { label, text: t } : f));
+    } else {
+      const a = getFavs(); if (!a.some(f => f.text === t)) a.push({ label, text: t }); setFavs(a);
+    }
+    loaded = { kind: action === 'replace' ? fromBtn.kind : 'fav', key: action === 'replace' ? fromBtn.key : t, label, text: t };
+    if (loaded.kind === 'fav') loaded.key = t;
+    renderPhrases();
+    status('✔️ Guardada. Recuerda descargar frases.js para que quede para siempre.');
+  };
+  dlg.showModal();
+  $('#dlgLabel').select();
+};
+// Botones del diálogo (Enter en el nombre = la primera opción visible)
+let pendingSave = null;
+$('#saveDlg form').addEventListener('submit', e => {
+  e.preventDefault();
+  const action = e.submitter?.value || ($('#dlgReplace').style.display === 'none' ? 'new' : 'replace');
+  $('#saveDlg').close();
+  const fn = pendingSave; pendingSave = null;
+  if (fn && (action === 'replace' || action === 'new')) fn(action);
+});
+
+$('#export').onclick = () => {
+  const clean = s => s.replace(/[`|\r\n]/g, ' ').trim();
+  const lines = [...currentPhrases(), ...getFavs()].map(p => `${clean(p.label)} | ${p.text.replace(/[`\r\n]/g, ' ').trim()}`);
+  const content = [
+    '// Frases rápidas de Minnie. Una por línea:   Texto del botón | Lo que dice Minnie',
+    '// Usa {nombre} donde va el nombre y {o|a} para palabras que cambian si habla Mickey o Minnie (orgullos{o|a}). Las líneas que empiezan con # se ignoran.',
+    '// Al final de una frase puedes poner una acción entre corchetes y el personaje la hace:',
+    '// [saltar] [sentarse] [bailar] [malabares] [cantar] [dormir] [vuelta] [aplaudir] [saludar] [cucú] [besito] [abrazo]',
+    '// No borres la primera línea (FRASES) ni la última.',
+    'FRASES(`', ...lines, '`);', ''
+  ].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: 'text/javascript' }));
+  a.download = 'frases.js';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+renderPhrases();
+
+/* ---------- modo niña ---------- */
+$('#child').onclick = () => {
+  document.body.classList.add('child');
+  document.documentElement.requestFullscreen?.().catch(() => {});
+};
+const exitChild = () => {
+  document.body.classList.remove('child');
+  if (document.fullscreenElement) document.exitFullscreen?.();
+};
+let lastExitTap = 0;
+$('#exit').addEventListener('pointerup', () => {
+  const now = Date.now();
+  if (now - lastExitTap < 500) exitChild();
+  lastExitTap = now;
+});
+const setPanel = open => document.body.classList.toggle('settings', open);
+$('#gear').onclick = () => setPanel(!document.body.classList.contains('settings'));
+$('#closePanel').onclick = () => setPanel(false);
+$('#child').addEventListener('click', () => setPanel(false));
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) document.body.classList.remove('child'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape'){ exitChild(); setPanel(false); } });
+
+/* ---------- acciones: saltar, sentarse, bailar, malabares, cantar... ---------- */
+const NS = 'http://www.w3.org/2000/svg';
+let actionToken = 0, actionRunning = false;
+const actionCleanup = [];
+
+// Notas: "C5" = Do de la 5ª octava. Duración en tiempos.
+const SONGS = {
+  estrellita: [['C5',1],['C5',1],['G5',1],['G5',1],['A5',1],['A5',1],['G5',2],['F5',1],['F5',1],['E5',1],['E5',1],['D5',1],['D5',1],['C5',2]],
+  baile:      [['C5',.5],['E5',.5],['G5',.5],['E5',.5],['F5',.5],['A5',.5],['C6',1],['A5',.5],['G5',.5],['E5',.5],['G5',.5],['F5',.5],['D5',.5],['C5',1],
+               ['C5',.5],['E5',.5],['G5',.5],['E5',.5],['F5',.5],['A5',.5],['C6',1],['B5',.5],['G5',.5],['A5',.5],['F5',.5],['E5',.5],['D5',.5],['C5',1]]
+};
+function noteFreq(n){
+  const idx = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
+  const [, p, o] = n.match(/^([A-G]#?)(\d)$/);
+  return 440 * Math.pow(2, (idx[p] + (o - 4) * 12 - 9) / 12);
+}
+// Una nota "cantada": onda suave con vibrato; los varones cantan más grave
+function singNote(freq, dur, vol = .16){
+  const ctx = ensureAudio(); if (!ctx) return;
+  const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+  const vib = ctx.createOscillator(), vg = ctx.createGain();
+  o.type = CHAR.singWave || 'triangle';
+  o.frequency.value = freq * (CHAR.female ? 1 : 0.75);
+  vib.frequency.value = 6; vg.gain.value = freq * 0.012;
+  vib.connect(vg).connect(o.frequency);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol * (CHAR.singWave ? .5 : 1), t + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.95);
+  o.connect(g).connect(ctx.destination);
+  o.start(t); vib.start(t); o.stop(t + dur); vib.stop(t + dur);
+}
+async function playSong(a, song, beat, onNote){
+  for (const [n, len] of SONGS[song]){
+    singNote(noteFreq(n), beat * len);
+    onNote?.(n);
+    await a.wait(beat * len * 1000);
+  }
+}
+
+function floatAt(txt, fx, fy, size){
+  const stage = $('#stage'), sr = stage.getBoundingClientRect(), r = svg.getBoundingClientRect();
+  const h = document.createElement('span');
+  h.className = 'heart'; h.textContent = txt;
+  if (size) h.style.fontSize = size + 'px';
+  h.style.left = (r.left - sr.left + r.width * fx) + 'px';
+  h.style.top = (r.top - sr.top + r.height * fy) + 'px';
+  stage.appendChild(h);
+  setTimeout(() => h.remove(), 2300);
+}
+function svgEl(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  return e;
+}
+function repeat(a, fn, ms){ const id = setInterval(fn, ms); a.cleanup(() => clearInterval(id)); }
+
+const ACTIONS = [
+  { id: 'saltar', emoji: '🦘', label: 'Saltar', say: '¡A saltar!', run: async a => {
+      a.cls('act-jump');
+      for (let i = 0; i < 3; i++){
+        pose(110, -110, 180); setTimeout(() => sfx.boing(30), 120);
+        await a.wait(320); pose(20, -20, 200); await a.wait(300);
+      }
+  }},
+  { id: 'sentarse', emoji: '🪑', label: 'Sentarse', say: 'Me voy a sentar un ratito.', run: async a => {
+      const cushion = svgEl('ellipse', { cx: 200, cy: CHAR.seatY ?? 514, rx: 96, ry: 20, fill: '#ff9fc8', stroke: '#e06a9c', 'stroke-width': 3, class: 'prop' });
+      svg.insertBefore(cushion, $('#all'));
+      a.cleanup(() => cushion.remove());
+      await a.wait(50);
+      cushion.classList.add('on');
+      a.cls('act-sit');
+      pose(-18, 18, 500);
+      await a.wait(3800);
+      svg.classList.remove('act-sit'); pose(0, 0, 400);
+      await a.wait(600);
+  }},
+  { id: 'bailar', emoji: '💃', label: 'Bailar', say: '¡A bailar!', run: async a => {
+      await a.wait(300);
+      let n = 0;
+      const moves = [[60, -20], [20, -60], [110, -110], [-40, 40], [70, -70], [20, -60], [60, -20], [0, 0]];
+      a.cls('dance-long');
+      await playSong(a, 'baile', .26, () => {
+        if (n % 2 === 0){ const [l, r] = moves[(n / 2) % moves.length]; pose(l, r, 220); }
+        if (n % 8 === 0) hop();
+        n++;
+      });
+  }},
+  { id: 'malabares', emoji: '🤹', label: 'Malabares', say: '¡Mirá qué malabares!', run: async a => {
+      const balls = ['#e4002b', '#f5c400', '#2f6fd6'].map(c => {
+        const b = svgEl('circle', { r: 13, fill: c, stroke: 'rgba(0,0,0,.25)', 'stroke-width': 2, cx: 200, cy: 390 });
+        svg.appendChild(b); return b;
+      });
+      a.cleanup(() => balls.forEach(b => b.remove()));
+      let side = 0;
+      repeat(a, () => { side ^= 1; pose(side ? 14 : -8, side ? 8 : -14, 200); sfx.pop(); }, 433);
+      // Las pelotas se dibujan en cada cuadro; la duración la marca el reloj
+      const t0 = performance.now();
+      const f = t => {
+        if (!a.alive()) return;
+        const el = (t - t0) / 1000;
+        balls.forEach((b, i) => {
+          const th = (el / 1.3 + i / 3) * Math.PI * 2, s = Math.sin(th);
+          b.setAttribute('cx', (200 - 88 * Math.cos(th)).toFixed(1));
+          b.setAttribute('cy', (s > 0 ? 385 - 215 * s : 385 - 18 * s).toFixed(1));
+        });
+        requestAnimationFrame(f);
+      };
+      requestAnimationFrame(f);
+      await a.wait(5200);
+  }},
+  { id: 'cantar', emoji: '🎤', label: 'Cantar', say: null, run: async a => {
+      setTalking(true);
+      a.cleanup(() => { singLevel = -1; setTalking(false); });
+      pose(30, -30, 500);
+      let n = 0;
+      await playSong(a, 'estrellita', .42, () => {
+        singLevel = 1;
+        if (n % 2 === 0) floatAt(n % 4 ? '🎵' : '🎶', .45 + Math.random() * .2, .4);
+        if (n === 7) pose(80, -80, 500);
+        n++;
+      });
+      singLevel = -1; setTalking(false); hearts();
+      await a.wait(400);
+  }},
+  { id: 'dormir', emoji: '😴', label: 'Dormir', say: 'Qué sueño... Buenas noches, {nombre}.', wake: '¡Ya me desperté!', run: async a => {
+      await a.wait(900);
+      a.cls('act-sleep');
+      pose(-30, 30, 800);
+      repeat(a, () => { floatAt('💤', .62, .22, 34); tone('sine', 120, 90, 1.1, .06); }, 1300);
+      await a.wait(5200);
+      svg.classList.remove('act-sleep');
+      a.stopRepeats();
+      speak(a.wakeSay, 'none', true);
+      gesture('joy'); await a.wait(1400);
+  }},
+  { id: 'vuelta', emoji: '🌀', label: 'Dar una vuelta', say: '¡Weee!', run: async a => {
+      a.cls('act-spin');
+      pose(90, -90, 300);
+      await a.wait(2300);
+  }},
+  { id: 'aplaudir', emoji: '👏', label: 'Aplaudir', say: '¡Bravo, bravo!', run: async a => {
+      for (let i = 0; i < 6; i++){
+        pose(-50, 50, 150); await a.wait(160);
+        pose(-64, 64, 90); sfx.clap(); await a.wait(160);
+      }
+  }},
+  { id: 'saludar', emoji: '👋', label: 'Saludar', say: '¡Hola, {nombre}!', run: async a => {
+      await gesture('wave');
+  }},
+  { id: 'cucu', emoji: '🙈', label: 'Cucú', say: null, reveal: '¡Cucú! ¡Acá estoy!', run: async a => {
+      // Se tapa los ojos con las manos (los brazos se estiran un poco para llegar)
+      const [pa, ps] = CHAR.peekaboo || [159, 1.6];
+      pose(pa, -pa, 550, ps);
+      await a.wait(1900);
+      speak(a.revealSay, 'none', true);
+      pose(70, -70, 300); hop();
+      await a.wait(1300);
+  }},
+  { id: 'besito', emoji: '😘', label: 'Besito', say: 'Un besito para vos, {nombre}.', run: async a => {
+      await a.wait(300); await gesture('kiss');
+  }},
+  { id: 'abrazo', emoji: '🤗', label: 'Abrazo', say: '¡Un abrazo grande, {nombre}!', run: async a => {
+      await a.wait(200); hearts(); await gesture('hug');
+  }}
+];
+const ACTION_TEXTS = ACTIONS.flatMap(x => [x.say, x.wake, x.reveal]).filter(Boolean);
+
+// Busca una acción por id o nombre ("bailar", "Dar una vuelta", "cucú")
+const norm = t => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+function findAction(name){ const n = norm(name); return ACTIONS.find(x => x.id === n || norm(x.label) === n); }
+
+function cancelAction(){
+  if (!actionRunning) return;
+  actionToken++;
+  endAction();
+}
+function endAction(){
+  actionRunning = false;
+  actionCleanup.splice(0).forEach(f => { try{ f(); }catch(e){} });
+  svg.classList.remove('act-jump', 'act-sit', 'act-sleep', 'act-spin', 'dance-long');
+  singLevel = -1;
+  gestureBusy = false;
+  pose(0, 0, 400);
+}
+async function runAction(id, sayText){
+  const act = findAction(id); if (!act) return;
+  cancelAction();
+  stopAll();
+  const intro = sayText !== undefined ? sayText : act.say;
+  if (intro && act.say !== null) speak(intro, 'none', true);
+  const tk = ++actionToken;
+  actionRunning = true;
+  gestureBusy = true;
+  ensureAudio();
+  const repeats = [];
+  const a = {
+    alive: () => tk === actionToken,
+    wait: ms => new Promise((res, rej) => setTimeout(() => tk === actionToken ? res() : rej('cancel'), ms)),
+    cleanup: fn => actionCleanup.push(fn),
+    cls: c => { svg.classList.remove(c); void svg.getBBox(); svg.classList.add(c); },
+    stopRepeats: () => { actionCleanup.splice(0).forEach(f => { try{ f(); }catch(e){} }); },
+    wakeSay: act.wake,
+    // En "Cucú" la frase propia (si vino de frases.js) se dice al destaparse
+    revealSay: act.say === null && sayText ? sayText : act.reveal
+  };
+  try{ await act.run(a); }catch(e){}
+  if (tk === actionToken) endAction();
+}
+
+// Botones de acciones (también en modo Josefina)
+ACTIONS.forEach(x => {
+  const b = document.createElement('button');
+  b.title = x.label;
+  b.innerHTML = `<span class="e">${x.emoji}</span><span>${x.label}</span>`;
+  b.onclick = () => runAction(x.id);
+  // La mitad de las acciones a cada lado del personaje (a la izquierda, debajo del armario)
+  $(ACTIONS.indexOf(x) < 5 ? '#actionsL' : '#actionsR').appendChild(b);
+});
+
+/* ---------- armario: gorro, lentes, camisa, pantalón y zapatos para todos ---------- */
+const WEAR = window.WARDROBE_ITEMS || {};
+const WEAR_CATS = [
+  { id: 'hat',     emoji: '🎩', label: 'Gorro',    box: '-120 -150 240 175' },
+  { id: 'glasses', emoji: '👓', label: 'Lentes',   box: '-125 -55 250 110' },
+  { id: 'top',     emoji: '👕', label: 'Camisa',   box: '-80 -12 160 124' },
+  { id: 'bottom',  emoji: '🩳', label: 'Pantalón', box: '-105 -12 210 124' },
+  { id: 'shoes',   emoji: '👟', label: 'Zapatos',  box: '-70 -60 124 92' }
+];
+const WEAR_SAY = {
+  hat:     ['¿Te gusta mi gorro, {nombre}?', '¡Qué lindo gorro!'],
+  glasses: ['¡Mirá mis lentes!', '¡Con estos lentes veo todo!'],
+  new:     ['¡Me encanta!', '¡Qué lind{o|a} estoy!', '¿Cómo me queda, {nombre}?', '¡Gracias, {nombre}!']
+};
+
+function getOutfit(){
+  const saved = readJSON('outfit.' + CHAR.id, null);
+  return saved && typeof saved === 'object' ? saved : { ...(CHAR.defaultOutfit || {}) };
+}
+function setOutfit(o){ store.set('outfit.' + CHAR.id, JSON.stringify(o)); }
+function wearItem(cat, id){ return (WEAR[cat] || []).find(x => x.id === id); }
+function wearGroup(cat, transform, markup, part){
+  const g = svgEl('g', { class: 'wear wear-' + cat });
+  if (part) g.setAttribute('data-part', part);
+  g.innerHTML = `<g transform="${transform}">${markup}</g>`;
+  return g;
+}
+
+// Pone las prendas elegidas sobre el personaje, acomodadas a su cuerpo (CHAR.fit)
+function applyOutfit(){
+  svg.querySelectorAll('.wear').forEach(e => e.remove());
+  const o = getOutfit(), f = CHAR.fit || {}, head = $('#head'), sway = $('#sway');
+  const it = cat => o[cat] && f[cat] ? wearItem(cat, o[cat]) : null;
+  WEAR_CATS.forEach(c => it(c.id) ? svg.setAttribute('data-wear-' + c.id, '1') : svg.removeAttribute('data-wear-' + c.id));
+
+  const b = f.bottom, t = f.top, g = f.glasses, h = f.hat;
+  if (it('bottom')) sway.insertBefore(wearGroup('bottom', `translate(${b.cx ?? 200} ${b.waist}) scale(${b.w / 100} ${(b.hem - b.waist) / 100})`, it('bottom').svg, 'tummy'), head);
+  if (it('top')){
+    sway.insertBefore(wearGroup('top', `translate(${t.cx ?? 200} ${t.neck}) scale(${t.w / 100} ${(t.waist - t.neck) / 100})`, it('top').body, 'tummy'), head);
+    // Mangas sobre el comienzo de los brazos
+    const k = f.sleeve ?? 1;
+    (CHAR.shoulders || [[156, 326], [244, 326]]).forEach(([x, y], i) =>
+      sway.appendChild(wearGroup('top', `translate(${x} ${y}) scale(${i ? -k : k} ${k})`, it('top').sleeve, 'tummy')));
+  }
+  if (it('glasses')) head.appendChild(wearGroup('glasses', `translate(${g.cx ?? 200} ${g.cy}) scale(${g.s})`, it('glasses').svg, 'glasses'));
+  if (it('hat')) head.appendChild(wearGroup('hat', `translate(${h.cx ?? 200} ${h.y}) rotate(${h.tilt ?? -6}) scale(${h.w / 200})`, it('hat').svg, 'hat'));
+  // Los zapatos van dentro de cada pie, así se estiran y se sientan con él
+  if (it('shoes')) f.shoes.forEach(([x, y, w], i) => {
+    const foot = $(i ? '#footR' : '#footL');
+    foot?.appendChild(wearGroup('shoes', `translate(${x} ${y}) scale(${(i ? -1 : 1) * w / 100} ${w / 100})`, it('shoes').svg));
+  });
+}
+
+function wearOn(cat, id){
+  const o = getOutfit();
+  if (id && o[cat] !== id) o[cat] = id; else delete o[cat];
+  setOutfit(o); applyOutfit(); renderWardrobe();
+  if (o[cat]){
+    sfx.pop(); hop();
+    floatAt('✨', .5, .3, 30);
+    lastReact = -Infinity;
+    react('new');
+  }
+}
+
+/* ---------- pantalla del armario ---------- */
+function preview(cat, item){
+  const c = WEAR_CATS.find(x => x.id === cat);
+  const inner = cat === 'top'
+    ? `<g transform="translate(0 0)">${item.body}</g><g transform="translate(-46 14)">${item.sleeve}</g><g transform="translate(46 14) scale(-1 1)">${item.sleeve}</g>`
+    : item.svg;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${c.box}">${inner}</svg>`);
+}
+function renderWardrobe(){
+  const box = $('#wardrobe'); if (box.hidden) return;
+  const o = getOutfit();
+  // Todas las prendas en una sola lista (ordenadas por tipo): tocar = poner / sacar.
+  // Si ya tiene una del mismo tipo (por ejemplo otro gorro), se la cambia.
+  $('#wItems').innerHTML = '';
+  WEAR_CATS.forEach(c => (WEAR[c.id] || []).forEach(item => {
+    const b = document.createElement('button');
+    b.title = item.name;
+    b.innerHTML = `<img alt="" src="${preview(c.id, item)}"><span>${item.name}</span>`;
+    b.className = o[c.id] === item.id ? 'on' : '';
+    b.onclick = () => wearOn(c.id, item.id);
+    $('#wItems').appendChild(b);
+  }));
+}
+function toggleWardrobe(show){
+  const box = $('#wardrobe');
+  box.hidden = show === undefined ? !box.hidden : !show;
+  // Mientras se viste, se esconden las acciones y los personajes para dejar lugar a las prendas
+  $('#actionsL').hidden = $('#actionsR').hidden = $('#cast').hidden = !box.hidden;
+  renderWardrobe();
+}
+$('#wClose').onclick = () => toggleWardrobe(false);
+$('#wClear').onclick = () => { setOutfit({}); applyOutfit(); renderWardrobe(); sfx.pop(); };
+$('#wRandom').onclick = () => {
+  // Sorpresa: una prenda al azar de cada categoría (a veces ninguna)
+  const o = {};
+  WEAR_CATS.forEach(c => { const list = WEAR[c.id] || []; if (list.length && Math.random() < .8) o[c.id] = pick(list).id; });
+  setOutfit(o); applyOutfit(); renderWardrobe();
+  sfx.boing(40); hop(); floatAt('🎲', .5, .3, 34);
+  lastReact = -Infinity; react('new');
+};
+{
+  const b = document.createElement('button');
+  b.className = 'wardrobe-btn';
+  b.innerHTML = '<span class="e">👗</span><span>Armario</span>';
+  b.onclick = () => toggleWardrobe(true);
+  $('#actionsL').prepend(b);
+}
+
+/* ---------- elegir personaje ---------- */
+function thumb(c){
+  const css = (c.thumbCss || '.mfill{fill:#e4002b}.mstroke{stroke:#a3001f}') + '#happyEyes{display:none}' + (c.thumbCssExtra || '');
+  // Avatar: solo la cara (thumbBox recorta el dibujo)
+  const markup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${c.thumbBox || '50 0 300 300'}"><style>${css}</style>${c.svg}</svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup);
+}
+CHARS.forEach(c => {
+  const b = document.createElement('button');
+  b.dataset.id = c.id;
+  b.innerHTML = `<img alt="" src="${thumb(c)}"><span>${c.name}</span>`;
+  b.onclick = () => switchCharacter(c.id);
+  $('#cast').appendChild(b);
+});
+function applyCharacterUI(){
+  document.querySelectorAll('.charName').forEach(e => e.textContent = CHAR.name);
+  $('#charEmoji').textContent = CHAR.emoji || '⭐';
+  document.title = `${CHAR.name} para ${$('#name').value.trim() || 'Josefina'}`;
+  const looks = CHAR.looks || [];
+  $('#lookRow').style.display = looks.length ? '' : 'none';
+  $('#look').innerHTML = looks.map(l => `<option value="${l.value}">${l.label}</option>`).join('');
+  // Si lo guardado no es un traje válido (por ejemplo, de antes de que existiera), usa el primero
+  const savedLook = store.get('look.' + CHAR.id, '');
+  $('#look').value = looks.some(l => l.value === savedLook) ? savedLook : (looks[0]?.value || '');
+  applyLook();
+  applyOutfit();
+  renderWardrobe();
+  renderVoiceSelect();
+  $('#elPitch').value = store.get('elPitch.' + CHAR.id, CHAR.pitch ?? (CHAR.id === 'minnie' ? store.get('elPitch', '1.0') : '1.0'));
+  $('#elPitchV').textContent = $('#elPitch').value;
+  status();
+  document.querySelectorAll('#cast button').forEach(b => b.classList.toggle('active', b.dataset.id === CHAR.id));
+}
+function switchCharacter(id){
+  if (id === CHAR.id) return;
+  cancelAction();
+  stopAll();
+  svg.classList.add('swapOut');
+  setTimeout(() => {
+    mountCharacter(id);
+    applyCharacterUI();
+    svg.classList.remove('swapOut');
+    hop();
+    lastReact = -Infinity;
+    react('head');
+  }, 260);
+}
+applyCharacterUI();
+</script>
+</body>
+</html>
