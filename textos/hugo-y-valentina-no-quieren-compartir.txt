@@ -1,0 +1,36 @@
+# Hugo y Valentina no quieren compartir
+# Una sección por página del PDF (== número). Se puede corregir a mano:
+# esto es lo que se lee en voz alta. Una página sin sección no se lee.
+
+== 1
+Hugo y Valentina no quieren compartir.
+
+== 2
+Valentina vio el coche rojo de Hugo rodar por la alfombra y quiso probarlo enseguida.
+"Déjamelo un poquito". Hugo lo apretó contra el pecho. "No".
+Entonces Valentina se lo quitó. Hugo rompió a llorar y, con su tormenta dentro, le tiró del pelo. Valentina gritó.
+
+== 3
+Mamá llegó al salón cuando aún temblaban los gritos. Los dos hablaron a la vez, señalándose con dedos acusadores.
+No eligió bando. Se sentó en el suelo y preguntó despacio: "Hugo, ¿cómo te sientes?"
+"Enfadado". Valentina frunció la nariz. Ella también estaba enfadada.
+
+== 4
+Mamá miró a Valentina y preguntó: "¿Y tú?"
+"También enfadada", dijo muy tiesa.
+"Los dos estáis enfadados. Eso está bien. ¿Qué podemos hacer?" En el salón cayó un silencio raro, como cuando la lluvia para un momento y nadie sabe si volverá. Hugo miró el coche. Valentina, también.
+
+== 5
+Valentina fue la primera. "Podemos hacer turnos".
+Hugo negó fuerte. "No quiero turnos". Mamá esperó un poco y preguntó si tenía otra idea.
+Hugo pensó tanto que casi se le oía la cabeza: cloc, cloc. Luego dijo: "Ella puede jugar con el azul".
+
+== 6
+Valentina arrugó la frente. "El azul no me gusta".
+Hugo se cruzó de brazos como una puerta cerrada. Mamá no corrió a arreglarlo; solo esperó.
+Al final, Valentina soltó aire. "Vale, juego con el azul, pero luego me dejas el rojo cinco minutos". Hugo apretó los labios.
+
+== 7
+"T res minutos". "Cuatro". Hugo lo pensó y cedió: "Vale".
+Empezaron separados, cada uno con un coche. Pero, a los dos minutos, ya hacían carreras juntos sin contar nada.
+Desde el sofá, mamá sonrió. La tormenta se había ido andando, pasito a pasito.

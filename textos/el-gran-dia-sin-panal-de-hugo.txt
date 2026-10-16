@@ -1,0 +1,24 @@
+# El gran día sin pañal de Hugo
+# Una sección por página del PDF (== número). Se puede corregir a mano:
+# esto es lo que se lee en voz alta. Una página sin sección no se lee.
+
+== 1
+El gran día sin pañal de Hugo.
+
+== 2
+Hugo salió al jardín con su pelota. El pañal le hacía “crac-crac” al correr. Se paró, apretó las piernas y frunció la boca. “No me gusta esta sensación”, dijo bajito. Entonces vio un orinal nuevo cerca de la puerta. Hugo lo miró como si fuera una montaña. “¿Y si me equivoco?”, pensó. El viento olía a hierba y a aventura.
+
+== 3
+Cerca de una hoja brillante, un caracol avanzaba despacio. Hugo se agachó. “Hola, caracol. ¿Tú también tienes pañal?” El caracol sacó los cuernos. “No, Hugo. Yo aprendí a parar y escuchar mi barriga. Al principio me daba miedo. Pero hice una señal: toqué la hoja tres veces. Así pedía ayuda.” Hugo probó: tocó el aire. “Vale”, susurró.
+
+== 4
+Una mariquita se posó en la pelota de Hugo. “¡Qué cosquillas!”, rió él. “Soy Lila”, dijo la mariquita. “Yo también me asusté cuando dejé mi rincón de siempre. Un día pensé: ‘solo un intento’. Y si no salía, respiraba y lo volvía a intentar.” Hugo infló las mejillas y soltó el aire despacio. “Un intento”, repitió, muy serio.
+
+== 5
+De detrás de un arbusto salió un conejito. “Yo soy Nube”, dijo, moviendo la nariz. Hugo abrió los ojos. “¿Tú no tienes miedo?” Nube dio un saltito. “Sí. Pero tengo un plan: dos pasos, paro; otros dos, paro. Así llego donde quiero.” Hugo miró la puerta y el orinal. Estaban lejos, como un tesoro. “Dos pasos”, dijo Hugo, “y paro”.
+
+== 6
+Hugo dio dos pasos. Paró. Notó cosquillas en la tripa. “Quiero ir”, dijo. Dio otros dos pasos. Paró otra vez. La puerta ya estaba cerca. Hugo tragó saliva. “¿Y si no sale?” El caracol tocó la hoja. La mariquita abrió las alas. Nube asintió. Hugo tocó su barriga y dijo: “Ayudadme, por favor”. Entró y se sentó en el orinal.
+
+== 7
+Hugo esperó un momento, muy quieto. Escuchó su respiración: “fiu... fuu...”. Y entonces pasó. Hugo se quedó sorprendido, como si hubiera encontrado una moneda brillante. “¡Lo he hecho!”, gritó. Luego se levantó despacio y miró, orgulloso. “Solo un intento”, dijo la mariquita. “Y dos pasos”, añadió Nube. Hugo sonrió. “Mañana lo intento otra vez.”

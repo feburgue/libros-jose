@@ -66,6 +66,12 @@ body.v-girado .v-header h1{font-size:13px}
 .v-tool svg{width:21px; height:21px; fill:none; stroke:currentColor;
   stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
 a.v-tool{display:grid}
+/* leer solo: botón destacado, relleno, y visible aunque no esté leyendo */
+.v-tool.v-leer{background:var(--amber); color:#3a2415; opacity:1}
+.v-tool.v-leer:hover{background:var(--amber-deep)}
+.v-tool.v-leer[aria-pressed="true"]{background:var(--cream)}
+.v-tool.v-leer svg{fill:currentColor}
+.v-tool[hidden]{display:none}
 
 /* ---------- escenario ---------- */
 .v-stage{flex:1 1 auto; position:relative; display:grid; place-items:center; min-height:0}
