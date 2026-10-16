@@ -1,14 +1,15 @@
 {
- "voz": "es-UY-ValentinaNeural",
- "velocidad": "-8%",
+ "voz": "es-AR-ElenaNeural",
+ "velocidad": "-25%",
+ "tono": "-4%",
  "paginas": {
-  "1": "b09cdc6c436d",
-  "2": "5b71786a8f59",
-  "4": "1344389dd37b",
-  "6": "abcae15b6205",
-  "8": "2bb16eee7616",
-  "9": "e01bbb1ad62a",
-  "10": "6318d01f50c8",
-  "11": "761b368086b1"
+  "1": "5d5339d0bd0c",
+  "2": "8c9247e37e62",
+  "4": "b8f346e1c2fe",
+  "6": "b4578a866af6",
+  "8": "4d63aff8ab2d",
+  "9": "08ca1a88c30a",
+  "10": "d31236849655",
+  "11": "70866beb4c46"
  }
 }
