@@ -1,13 +1,13 @@
 {
- "voz": "es-AR-ElenaNeural",
+ "voz": "es-UY-ValentinaNeural",
  "velocidad": "-8%",
  "paginas": {
-  "1": "c1b84abc0898",
-  "2": "ceb19407ef01",
-  "3": "b89716590de6",
-  "4": "4cdb9425db49",
-  "5": "f9fd84a8c082",
-  "6": "f4bc7f1a4fc9",
-  "7": "38ece5bf65a8"
+  "1": "5b0a7dbe1535",
+  "2": "336729c096dd",
+  "3": "7a6f350fa9eb",
+  "4": "729ea0706edc",
+  "5": "68f86a10b76f",
+  "6": "670263e20263",
+  "7": "cd24347be060"
  }
 }

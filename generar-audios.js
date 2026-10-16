@@ -10,7 +10,7 @@
      AZURE_SPEECH_KEY=xxxx AZURE_SPEECH_REGION=eastus node generar-audios.js
    Opciones:
      node generar-audios.js caperucita hadas    solo esos cuentos
-     --voz=es-UY-ValentinaNeural                otra voz (por defecto es-AR-ElenaNeural)
+     --voz=es-AR-ElenaNeural                    otra voz (por defecto es-UY-ValentinaNeural, uruguaya)
      --velocidad=-10%                           más lento o más rápido (por defecto -8%)
    Voces rioplatenses: es-AR-ElenaNeural, es-AR-TomasNeural, es-UY-ValentinaNeural, es-UY-MateoNeural
 */
@@ -20,7 +20,7 @@ const crypto = require('crypto');
 
 const opciones = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith('--')).map(a => a.slice(2).split('=')));
 const pedidos = new Set(process.argv.slice(2).filter(a => !a.startsWith('--')));
-const VOZ = opciones.voz || 'es-AR-ElenaNeural';
+const VOZ = opciones.voz || 'es-UY-ValentinaNeural';
 const VELOCIDAD = opciones.velocidad || '-8%';
 const CLAVE = process.env.AZURE_SPEECH_KEY, REGION = process.env.AZURE_SPEECH_REGION;
 
