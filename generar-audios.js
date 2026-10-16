@@ -10,9 +10,11 @@
      AZURE_SPEECH_KEY=xxxx AZURE_SPEECH_REGION=eastus node generar-audios.js
    Opciones:
      node generar-audios.js caperucita hadas    solo esos cuentos
-     --voz=es-AR-ElenaNeural                    otra voz (por defecto es-UY-ValentinaNeural, uruguaya)
-     --velocidad=-10%                           más lento o más rápido (por defecto -8%)
+     --voz=es-UY-ValentinaNeural                otra voz (por defecto es-AR-ElenaNeural)
+     --velocidad=-10%                           más lento o más rápido (por defecto -25%)
+     --tono=-3%                                 más grave o más agudo (por defecto -4%)
    Voces rioplatenses: es-AR-ElenaNeural, es-AR-TomasNeural, es-UY-ValentinaNeural, es-UY-MateoNeural
+   Por defecto lee pausado, con pausas largas, para escuchar antes de dormir.
 */
 const fs = require('fs');
 const path = require('path');
@@ -20,8 +22,12 @@ const crypto = require('crypto');
 
 const opciones = Object.fromEntries(process.argv.slice(2).filter(a => a.startsWith('--')).map(a => a.slice(2).split('=')));
 const pedidos = new Set(process.argv.slice(2).filter(a => !a.startsWith('--')));
-const VOZ = opciones.voz || 'es-UY-ValentinaNeural';
-const VELOCIDAD = opciones.velocidad || '-8%';
+const VOZ = opciones.voz || 'es-AR-ElenaNeural';
+const VELOCIDAD = opciones.velocidad || '-25%';
+const TONO = opciones.tono || '-4%';
+// Silencio después de cada frase y entre párrafos: tranquilo, para antes de dormir.
+// Ojo: el de frase REEMPLAZA la pausa natural de la voz (unos 700 ms); menos que eso acelera.
+const PAUSA_FRASE = '900ms', PAUSA_PARRAFO = '1300ms';
 const CLAVE = process.env.AZURE_SPEECH_KEY, REGION = process.env.AZURE_SPEECH_REGION;
 
 // Mismo formato que lee el visor: "== 3" abre la página 3; las líneas con # se ignoran
@@ -39,13 +45,15 @@ function leerTextos(txt){
 }
 
 const xml = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-// Cada párrafo con una pausa corta entre medio, como cuando se lee en voz alta
+// Pausado: silencio tras cada frase y una pausa más larga entre párrafos
 function ssml(texto){
   const lang = VOZ.slice(0, 5);
-  const cuerpo = texto.split('\n').map(xml).join('<break time="600ms"/>');
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}">` +
-         `<voice name="${VOZ}"><prosody rate="${VELOCIDAD}">${cuerpo}</prosody></voice></speak>`;
+  const cuerpo = texto.split('\n').map(xml).join(`<break time="${PAUSA_PARRAFO}"/>`);
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="${lang}">` +
+         `<voice name="${VOZ}"><mstts:silence type="Sentenceboundary" value="${PAUSA_FRASE}"/>` +
+         `<prosody rate="${VELOCIDAD}" pitch="${TONO}">${cuerpo}</prosody></voice></speak>`;
 }
+const AJUSTES = [VOZ, VELOCIDAD, TONO, PAUSA_FRASE, PAUSA_PARRAFO].join('|');
 
 const esperar = ms => new Promise(r => setTimeout(r, ms));
 // El plan gratis acepta unos 20 pedidos por minuto: si se pasa, espera y reintenta
@@ -83,12 +91,12 @@ async function grabar(texto){
     const dir = path.join('audio', l.slug), rutaIndice = path.join(dir, 'indice.json');
     fs.mkdirSync(dir, { recursive: true });
     const anterior = fs.existsSync(rutaIndice) ? JSON.parse(fs.readFileSync(rutaIndice, 'utf8')).paginas || {} : {};
-    const indice = { voz: VOZ, velocidad: VELOCIDAD, paginas: {} };
+    const indice = { voz: VOZ, velocidad: VELOCIDAD, tono: TONO, paginas: {} };
     let nuevas = 0;
     for (const [n, texto] of Object.entries(paginas)){
       const archivo = path.join(dir, `p${n.padStart(2, '0')}.mp3`);
-      // la huella cambia si cambia el texto, la voz o la velocidad
-      const huella = crypto.createHash('sha1').update(VOZ + '|' + VELOCIDAD + '|' + texto).digest('hex').slice(0, 12);
+      // la huella cambia si cambia el texto o cualquier ajuste de la voz
+      const huella = crypto.createHash('sha1').update(AJUSTES + '|' + texto).digest('hex').slice(0, 12);
       if (anterior[n] === huella && fs.existsSync(archivo)){ indice.paginas[n] = huella; continue; }
       fs.writeFileSync(archivo, await grabar(texto));
       indice.paginas[n] = huella;
