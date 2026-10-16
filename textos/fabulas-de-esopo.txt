@@ -5,7 +5,7 @@
 == 1
 Fábulas de Esopo. Cuentos con valores para lectura.
 
-== 3
+== 2
 El león y el ratón.
 Había una vez un león que dormía tranquilo en el bosque.
 De pronto, un ratoncito chiquito empezó a correr por encima de su lomo.
@@ -19,7 +19,7 @@ Con sus dientitos mordió las cuerdas, una por una, ñic, ñic, ñic, hasta que 
 Y desde ese día fueron muy buenos amigos.
 Todos podemos ayudar, seamos grandes o chiquitos.
 
-== 4
+== 3
 La liebre y la tortuga.
 Había una vez una liebre que corría muy rápido, y siempre decía que era la más veloz del bosque.
 Cuando veía a la tortuga, se reía de lo despacito que caminaba.
@@ -34,7 +34,7 @@ Cuando la liebre se despertó, salió corriendo hacia la meta. Pero la tortuga y
 La liebre aprendió que no hay que reírse de los demás.
 Y que despacito y sin rendirse, se llega lejos.
 
-== 5
+== 4
 La cigarra y la hormiga.
 En un verano muy calentito, una cigarra se pasaba el día cantando a la sombra de los árboles.
 Su vecina, la hormiguita, trabajaba sin parar, cargando granitos de trigo.
@@ -48,7 +48,7 @@ La hormiga tenía un corazón muy bueno. La hizo pasar, le dio comida y un lugar
 Y la cigarra, contenta, le cantó canciones toda la noche.
 Desde ese día, en verano, la cigarra ayudó a juntar comida. Y la hormiga aprendió a cantar.
 
-== 6
+== 5
 El pastorcito mentiroso.
 Había una vez un pastorcito que cuidaba sus ovejas en una montaña, cerca de un pueblo.
 Un día estaba aburrido y quiso hacer una broma. Gritó muy fuerte:
@@ -63,7 +63,7 @@ Pero esta vez nadie le creyó, y nadie subió.
 Las ovejas se escaparon corriendo, y el pastorcito tuvo que buscarlas hasta la noche, muy triste.
 Ese día aprendió que siempre hay que decir la verdad, para que los demás nos crean.
 
-== 7
+== 6
 La zorra y las uvas.
 Una tarde de otoño, una zorra caminaba por el campo. Tenía mucha hambre y mucha sed.
 De pronto vio unas uvas grandes, moradas y jugosas, colgando de una parra.

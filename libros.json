@@ -4,16 +4,16 @@
     "pagina": "cuento-de-pinocho.html",
     "titulo": "Pinocho",
     "subtitulo": "Cuento para los niños",
-    "paginas": 15,
-    "peso": 3463692
+    "paginas": 12,
+    "peso": 3292927
   },
   {
     "slug": "caperucita",
     "pagina": "caperucita.html",
     "titulo": "Caperucita Roja",
     "subtitulo": "Charles Perrault",
-    "paginas": 12,
-    "peso": 3127785
+    "paginas": 8,
+    "peso": 1799558
   },
   {
     "slug": "hadas",
@@ -21,7 +21,7 @@
     "titulo": "Las Hadas",
     "subtitulo": "Charles Perrault",
     "paginas": 12,
-    "peso": 668274
+    "peso": 1165482
   },
   {
     "slug": "gato-con-botas",
@@ -29,15 +29,15 @@
     "titulo": "El gato con botas",
     "subtitulo": "",
     "paginas": 21,
-    "peso": 1450899
+    "peso": 2315586
   },
   {
     "slug": "fabulas-de-esopo",
     "pagina": "fabulas-de-esopo.html",
     "titulo": "Fábulas de Esopo",
     "subtitulo": "Cuentos con valores para lectura",
-    "paginas": 8,
-    "peso": 3941986
+    "paginas": 6,
+    "peso": 1321716
   },
   {
     "slug": "el-osito-mayor",
@@ -100,8 +100,8 @@
     "pagina": "ponte-en-mi-lugar.html",
     "titulo": "Ponte en mi lugar",
     "subtitulo": "Susanna Isern · Mylène Rigaudie",
-    "paginas": 21,
-    "peso": 5018483
+    "paginas": 17,
+    "peso": 4275648
   },
   {
     "slug": "alba-y-el-tarro-de-las-cosas-bonitas",

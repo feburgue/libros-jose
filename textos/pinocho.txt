@@ -5,17 +5,17 @@
 == 1
 Pinocho. Cuento para los niños.
 
-== 3
+== 2
 Había una vez, en un pueblito con calles de piedra y campanas que sonaban por la mañana, un carpintero viejito que se llamaba Gepeto.
 Gepeto era muy bueno y muy trabajador. Tenía un corazón enorme, pero estaba un poquito triste.
 
-== 4
+== 3
 Gepeto vivía solo en una casita sencilla. No tenía hijos, y a la noche su casa estaba muy callada.
 Él soñaba con tener un hijo, para contarle cuentos junto al fuego y llevarlo a la escuela.
 Una tarde, en su taller, encontró un pedazo de madera muy especial. Parecía tibio, casi vivo.
 Con mucho cariño, Gepeto talló un muñeco de madera, y le puso de nombre Pinocho.
 
-== 5
+== 4
 Esa noche, mientras Gepeto dormía, una luz suave llenó el taller. Era el Hada Azul.
 El Hada vio el corazón bueno de Gepeto, y le dio al muñeco un regalo mágico: la vida.
 Cuando Gepeto se despertó, Pinocho hablaba, se reía y saltaba.
@@ -25,54 +25,54 @@ El Hada Azul le dijo a Pinocho:
 —Si querés ser un niño de verdad, tenés que decir la verdad, portarte bien y pensar en los demás.
 Y le dio un amiguito para ayudarlo: Pepito Grillo.
 
-== 6
+== 5
 Pepito Grillo era chiquito, sabio y paciente. Siempre le daba buenos consejos a Pinocho:
 —Pensá antes de hacer las cosas. Andá a la escuela. Decí siempre la verdad.
 Pero Pinocho era muy curioso, y casi nunca lo escuchaba.
 Y cuando hacía algo mal, a veces decía una mentira.
 Y cada vez que decía una mentira, ¡su nariz crecía y crecía!
 
-== 7
+== 6
 Un día, Pinocho conoció al Zorro y al Gato. Parecían amables, pero en realidad eran unos tramposos.
 Pinocho tenía unas monedas de oro que le había dado Gepeto.
 —Si plantás tus monedas en el Campo de los Milagros —le dijeron—, va a crecer un árbol lleno de monedas.
 Pinocho les creyó, y plantó sus monedas.
 Pero no creció ningún árbol. Los tramposos se llevaron las monedas, y Pinocho se quedó muy triste.
 
-== 8
+== 7
 Después, Pinocho conoció a un señor que llevaba a los niños al País de los Juguetes.
 Allá no había escuela, ni tareas. Solo había juegos, todo el día y toda la noche.
 Pinocho se fue con él, sin avisarle a Gepeto.
 Pero en ese país pasaba algo raro: a los niños que no hacían otra cosa que jugar, les crecían orejas de burro.
 ¡A Pinocho también le crecieron! Y asustado, se escapó de ahí lo más rápido que pudo.
 
-== 9
+== 8
 Mientras tanto, Gepeto buscaba a Pinocho por todas partes, porque lo quería muchísimo.
 Lo buscó hasta en el mar, en un botecito.
 Pero vino una ballena enorme, abrió la boca, y Gepeto quedó adentro de su panza.
 Cuando Pinocho se enteró, decidió ir a buscar a su papá.
 Muy valiente, se tiró al mar, y nadó y nadó.
 
-== 10
+== 9
 La ballena también se tragó a Pinocho. Y adentro de su panza, oscura y grande, ¡encontró a Gepeto!
 —¡Papá! —gritó Pinocho, y lo abrazó fuerte.
 Juntos, le hicieron cosquillas a la ballena, hasta que la ballena estornudó: ¡Achís!
 Y los dos salieron volando al mar.
 Pinocho ayudó a Gepeto a nadar hasta la orilla, y volvieron juntos a casa.
 
-== 11
+== 10
 Desde ese día, Pinocho cambió.
 Se levantaba temprano, ayudaba a Gepeto y lo cuidaba con mucho cariño.
 Volvió a la escuela, y cada día aprendía algo nuevo.
 Y lo más importante: dejó de decir mentiras. Había aprendido que la verdad nos hace sentir tranquilos.
 
-== 12
+== 11
 Una noche, mientras Pinocho dormía, el Hada Azul apareció otra vez.
 Vio todo lo bueno que había hecho Pinocho: cómo ayudaba, cómo decía la verdad, y cuánto quería a su papá.
 —Te lo ganaste, Pinocho —dijo el Hada, muy bajito.
 Y mientras él dormía, la magia hizo su trabajo.
 
-== 13
+== 12
 A la mañana, Gepeto se despertó y miró la cama de Pinocho.
 Ya no había un muñeco de madera. Había un niño de verdad, respirando suavecito, con la misma carita de siempre.
 Pinocho abrió los ojos y sonrió.
