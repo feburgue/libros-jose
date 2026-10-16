@@ -5,6 +5,8 @@ CHARACTER({
   voiceId: "gMjKNUC2AFdB75p87M2h",
   // Voz del navegador: tono y velocidad propios, y si busca voz de hombre o de mujer
   browser: { pitch: 1.9, rate: 0.95, female: true },
+  // Cómo canta: canción, ritmo, timbre, vocal con que tararea, altura y vibrato [velocidad, cuánto]
+  sing: { song: "estrellita", beat: .42, wave: "triangle", vowel: "u", pitch: 1, vib: [6, .012] },
   // Opciones de ropa (colores del vestido y el moño)
   looks: [{ value: "red", label: "Rojo clásico" }, { value: "pink", label: "Rosa (La Casa de Mickey)" }],
   // Hombros: desde donde giran los brazos

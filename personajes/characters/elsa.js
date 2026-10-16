@@ -5,6 +5,8 @@ CHARACTER({
   voiceId: "",
   // Voz del navegador: de mujer, tono apenas agudo y tranquila
   browser: { pitch: 1.2, rate: 0.95, female: true },
+  // Cómo canta: canción, ritmo, timbre, vocal con que tararea, altura y vibrato [velocidad, cuánto]
+  sing: { song: "elisa", beat: .32, wave: "sine", vowel: "a", pitch: .5, vib: [5.5, .01] },
   looks: [],
   // Color del vestido
   colors: { m: "#5fcfdc", md: "#2b9fb0" },

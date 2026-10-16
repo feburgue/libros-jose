@@ -5,6 +5,8 @@ CHARACTER({
   voiceId: "NyN6nrH7ausSBWuLonyY",
   // Voz del navegador: lo más agudo y apurado posible, como un pato enojado
   browser: { pitch: 2, rate: 1.3 },
+  // Cómo canta: canción, ritmo, timbre, vocal con que tararea, altura y vibrato [velocidad, cuánto]
+  sing: { song: "granja", beat: .32, wave: "sawtooth", vowel: "e", pitch: .9, vib: [9, .03] },
   looks: [],
   // Color de la camisa y el gorro
   colors: { m: "#2f5fb3", md: "#1d3c7c" },
@@ -15,8 +17,6 @@ CHARACTER({
   shoulders: [[160, 252], [240, 252]],
   hands: [[124, 342], [276, 342]],
   raiseScale: 1.35, kissAngle: 167, kissScale: 0.72, peekaboo: [168, 1.37], waveAngle: 118,
-  // Canta con voz "de pato"
-  singWave: "sawtooth",
   // Altura del almohadón al sentarse
   seatY: 488,
   // Dónde van las prendas del armario (wardrobe.js): cinta del gorro, centro de los lentes,

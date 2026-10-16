@@ -5,6 +5,8 @@ CHARACTER({
   voiceId: "gMjKNUC2AFdB75p87M2h",
   // Voz del navegador: un poco menos aguda que Minnie y más rápida, con carácter
   browser: { pitch: 1.6, rate: 1.05, female: true },
+  // Cómo canta: canción, ritmo, timbre, vocal con que tararea, altura y vibrato [velocidad, cuánto]
+  sing: { song: "cucaracha", beat: .3, wave: "triangle", vowel: "a", pitch: 1, vib: [6.5, .018] },
   pitch: "0.92",
   // Color del moño y los zapatos
   looks: [{ value: "pink", label: "Moño rosa" }, { value: "purple", label: "Moño violeta" }],

@@ -5,6 +5,8 @@ CHARACTER({
   voiceId: "",
   // Voz del navegador: grave, lenta y bonachona
   browser: { pitch: 0.6, rate: 0.85 },
+  // Cómo canta: canción, ritmo, timbre, vocal con que tararea, altura y vibrato [velocidad, cuánto]
+  sing: { song: "martinillo", beat: .48, wave: "sawtooth", vowel: "o", pitch: .5, vib: [4, .03] },
   looks: [],
   // Color del suéter de cuello alto
   colors: { m: "#f5821f", md: "#b85a0c" },

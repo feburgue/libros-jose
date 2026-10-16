@@ -5,6 +5,8 @@ CHARACTER({
   voiceId: "i8vki8gZhHyJqjwRblDZ",
   // Voz del navegador: falsete agudo y alegre
   browser: { pitch: 1.8, rate: 1.05 },
+  // Cómo canta: canción, ritmo, timbre, vocal con que tararea, altura y vibrato [velocidad, cuánto]
+  sing: { song: "baile", beat: .3, wave: "square", vowel: "a", pitch: 1, vib: [7, .015] },
   looks: [],
   // Hombros y manos en reposo (brazos de "manguera" como los de Minnie)
   shoulders: [[166, 282], [234, 282]],

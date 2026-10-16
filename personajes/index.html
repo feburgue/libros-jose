@@ -385,12 +385,14 @@ const PRESETS = [
 ];
 
 /* ---------- voces ---------- */
-const MALE = /jorge|pablo|ra[uú]l|[aá]lvaro|tom[aá]s|mateo|gonzalo|lorenzo|diego|emilio|dar[ií]o|federico|gerardo|andr[eé]s|jorge|alonso|carlos|juan/i;
-const FEMALE = /paulina|sabina|dalia|elena|helena|monica|mónica|laura|luc[ií]a|valentina|elvira|ximena|google español/i;
+// El navegador no dice si una voz es de hombre o de mujer: se adivina por el nombre
+// (Windows, Edge, Mac, iPad, Android). Grandpa, Eddy, Reed y Rocko son voces de Apple.
+const MALE = /jorge|pablo|ra[uú]l|[aá]lvaro|tom[aá]s|mateo|gonzalo|lorenzo|diego|emilio|dar[ií]o|federico|gerardo|andr[eé]s|alonso|carlos|juan|enrique|miguel|rodrigo|sebasti[aá]n|esteban|el[ií]as|sa[uú]l|arnau|liberto|teo\b|nil\b|mario|luis|cecilio|grandpa|eddy|reed|rocko|\bmale\b|hombre|masculin/i;
+const FEMALE = /paulina|sabina|dalia|elena|helena|monica|mónica|laura|luc[ií]a|valentina|elvira|ximena|paloma|salom[eé]|catalina|camila|paola|renata|beatriz|andrea|marisol|soledad|isabela|lupe|pen[eé]lope|\bmia\b|conchita|ang[eé]lica|francisca|esperanza|carlota|irene|estrella|triana|vera\b|sara\b|sof[ií]a|marta|tania|karina|yolanda|larissa|marina|carmen|flo\b|grandma|sandy|shelley|female|mujer|femenin|google español/i;
 // Las voces "Natural"/"Online" suenan mejor pero ignoran el tono: si el personaje lo cambia
 // mucho (Goofy grave, Donald agudo), prefiere una voz que sí lo respete
 function bestVoice(list, female = true, needsPitch = false){
-  const who = female ? FEMALE : MALE;
+  const who = female ? FEMALE : MALE, other = female ? MALE : FEMALE;
   const latam = /es[-_](419|mx|ar|uy|us|co|cl)/i;
   const natural = /natural|neural|online/i;
   const pitchable = list.filter(v => !natural.test(v.name));
@@ -400,6 +402,9 @@ function bestVoice(list, female = true, needsPitch = false){
       || pool.find(v => who.test(v.name) && latam.test(v.lang))
       || pool.find(v => who.test(v.name))
       || list.find(v => who.test(v.name))
+      // ninguna reconocida: al menos que no sea una del otro sexo
+      || pool.find(v => !other.test(v.name) && latam.test(v.lang))
+      || pool.find(v => !other.test(v.name))
       || pool.find(v => latam.test(v.lang))
       || pool[0];
 }
@@ -1175,36 +1180,76 @@ const NS = 'http://www.w3.org/2000/svg';
 let actionToken = 0, actionRunning = false;
 const actionCleanup = [];
 
-// Notas: "C5" = Do de la 5ª octava. Duración en tiempos.
+// Notas: "C5" = Do de la 5ª octava, "R" = silencio. Duración en tiempos.
+// Son melodías tradicionales o clásicas, sin derechos de autor.
 const SONGS = {
   estrellita: [['C5',1],['C5',1],['G5',1],['G5',1],['A5',1],['A5',1],['G5',2],['F5',1],['F5',1],['E5',1],['E5',1],['D5',1],['D5',1],['C5',2]],
   baile:      [['C5',.5],['E5',.5],['G5',.5],['E5',.5],['F5',.5],['A5',.5],['C6',1],['A5',.5],['G5',.5],['E5',.5],['G5',.5],['F5',.5],['D5',.5],['C5',1],
-               ['C5',.5],['E5',.5],['G5',.5],['E5',.5],['F5',.5],['A5',.5],['C6',1],['B5',.5],['G5',.5],['A5',.5],['F5',.5],['E5',.5],['D5',.5],['C5',1]]
+               ['C5',.5],['E5',.5],['G5',.5],['E5',.5],['F5',.5],['A5',.5],['C6',1],['B5',.5],['G5',.5],['A5',.5],['F5',.5],['E5',.5],['D5',.5],['C5',1]],
+  // La cucaracha
+  cucaracha:  [['C5',.5],['C5',.5],['C5',.5],['F5',1],['A5',1],['R',.5],['C5',.5],['C5',.5],['C5',.5],['F5',1],['A5',1],['R',.5],
+               ['F5',.5],['F5',.5],['E5',.5],['E5',.5],['D5',.5],['D5',.5],['C5',2],['R',.5],
+               ['C5',.5],['C5',.5],['C5',.5],['E5',1],['G5',1],['R',.5],['C5',.5],['C5',.5],['C5',.5],['E5',1],['G5',1],['R',.5],
+               ['C6',.5],['D6',.5],['C6',.5],['A#5',.5],['A5',.5],['G5',.5],['F5',2]],
+  // En la granja de mi tío (Old MacDonald)
+  granja:     [['C5',1],['C5',1],['C5',1],['G4',1],['A4',1],['A4',1],['G4',2],['E5',1],['E5',1],['D5',1],['D5',1],['C5',2],['R',1],
+               ['G4',.5],['G4',.5],['C5',1],['C5',1],['C5',1],['G4',.5],['G4',.5],['C5',1],['C5',1],['C5',1],
+               ['C5',1],['C5',1],['C5',1],['G4',1],['A4',1],['A4',1],['G4',2],['E5',1],['E5',1],['D5',1],['D5',1],['C5',2]],
+  // Martinillo (Frère Jacques)
+  martinillo: [['C5',1],['D5',1],['E5',1],['C5',1],['C5',1],['D5',1],['E5',1],['C5',1],['E5',1],['F5',1],['G5',2],['E5',1],['F5',1],['G5',2],
+               ['G5',.5],['A5',.5],['G5',.5],['F5',.5],['E5',1],['C5',1],['G5',.5],['A5',.5],['G5',.5],['F5',.5],['E5',1],['C5',1],
+               ['C5',1],['G4',1],['C5',2],['C5',1],['G4',1],['C5',2]],
+  // Para Elisa (Beethoven)
+  elisa:      [['E6',.5],['D#6',.5],['E6',.5],['D#6',.5],['E6',.5],['B5',.5],['D6',.5],['C6',.5],['A5',1.5],['R',.5],
+               ['C5',.5],['E5',.5],['A5',.5],['B5',1.5],['R',.5],['E5',.5],['G#5',.5],['B5',.5],['C6',1.5],['R',.5],
+               ['E5',.5],['E6',.5],['D#6',.5],['E6',.5],['D#6',.5],['E6',.5],['B5',.5],['D6',.5],['C6',.5],['A5',1.5],['R',.5],
+               ['C5',.5],['E5',.5],['A5',.5],['B5',1.5],['R',.5],['E5',.5],['C6',.5],['B5',.5],['A5',2]]
 };
+// Cómo canta cada personaje si su archivo no dice otra cosa (CHAR.sing)
+const DEFAULT_SING = { song: 'estrellita', beat: .42, wave: 'triangle', vowel: 'u', vib: [6, .012] };
+const singCfg = () => ({ ...DEFAULT_SING, pitch: CHAR.female ? 1 : 0.75, ...(CHAR.sing || {}) });
+// Resonancias de la boca para cada vocal: con "u" tararea, con "a" suena a "la la"
+const VOWELS = { u: [325, 700], o: [450, 800], a: [750, 1150], e: [500, 1750], i: [300, 2200] };
 function noteFreq(n){
   const idx = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
   const [, p, o] = n.match(/^([A-G]#?)(\d)$/);
   return 440 * Math.pow(2, (idx[p] + (o - 4) * 12 - 9) / 12);
 }
-// Una nota "cantada": onda suave con vibrato; los varones cantan más grave
+// Una nota "cantada": dos osciladores apenas desafinados pasan por las resonancias de una
+// vocal, con un vibrato que entra de a poco. Cada personaje tiene su timbre (CHAR.sing)
 function singNote(freq, dur, vol = .16){
   const ctx = ensureAudio(); if (!ctx) return;
-  const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+  const s = singCfg(), f = freq * s.pitch, t = ctx.currentTime, end = t + dur;
+  const out = ctx.createGain(); out.connect(ctx.destination);
+  const env = ctx.createGain(), peak = vol * (s.wave === 'sine' || s.wave === 'triangle' ? 1.3 : .55);
+  env.gain.setValueAtTime(0.0001, t);
+  env.gain.exponentialRampToValueAtTime(peak, t + Math.min(.06, dur * .3));
+  env.gain.setValueAtTime(peak, t + dur * .7);
+  env.gain.exponentialRampToValueAtTime(0.0001, end);
+  // resonancias de la vocal, más un poco del sonido directo
+  const [f1, f2] = VOWELS[s.vowel] || VOWELS.u;
+  [[f1, 1.2], [f2, .6], [0, .35]].forEach(([fr, gain]) => {
+    const g = ctx.createGain(); g.gain.value = gain;
+    if (fr){ const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = 4; env.connect(bp).connect(g); }
+    else env.connect(g);
+    g.connect(out);
+  });
   const vib = ctx.createOscillator(), vg = ctx.createGain();
-  o.type = CHAR.singWave || 'triangle';
-  o.frequency.value = freq * (CHAR.female ? 1 : 0.75);
-  vib.frequency.value = 6; vg.gain.value = freq * 0.012;
-  vib.connect(vg).connect(o.frequency);
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(vol * (CHAR.singWave ? .5 : 1), t + 0.04);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.95);
-  o.connect(g).connect(ctx.destination);
-  o.start(t); vib.start(t); o.stop(t + dur); vib.stop(t + dur);
+  vib.frequency.value = s.vib[0];
+  vg.gain.setValueAtTime(0, t);
+  vg.gain.linearRampToValueAtTime(f * s.vib[1], t + Math.min(.25, dur * .6));
+  vib.connect(vg);
+  for (const cents of [0, 7]){
+    const o = ctx.createOscillator();
+    o.type = s.wave; o.frequency.value = f; o.detune.value = cents;
+    vg.connect(o.frequency); o.connect(env);
+    o.start(t); o.stop(end + .02);
+  }
+  vib.start(t); vib.stop(end + .02);
 }
 async function playSong(a, song, beat, onNote){
-  for (const [n, len] of SONGS[song]){
-    singNote(noteFreq(n), beat * len);
-    onNote?.(n);
+  for (const [n, len] of SONGS[song] || SONGS.estrellita){
+    if (n !== 'R'){ singNote(noteFreq(n), beat * len); onNote?.(n); }
     await a.wait(beat * len * 1000);
   }
 }
@@ -1284,11 +1329,13 @@ const ACTIONS = [
       setTalking(true);
       a.cleanup(() => { singLevel = -1; setTalking(false); });
       pose(30, -30, 500);
+      // Cada personaje canta su canción, a su ritmo (CHAR.sing)
+      const s = singCfg(), half = Math.floor((SONGS[s.song] || []).length / 2);
       let n = 0;
-      await playSong(a, 'estrellita', .42, () => {
+      await playSong(a, s.song, s.beat, () => {
         singLevel = 1;
         if (n % 2 === 0) floatAt(n % 4 ? '🎵' : '🎶', .45 + Math.random() * .2, .4);
-        if (n === 7) pose(80, -80, 500);
+        if (n === half) pose(80, -80, 500);
         n++;
       });
       singLevel = -1; setTalking(false); hearts();
