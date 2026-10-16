@@ -45,7 +45,7 @@
     "titulo": "El Osito mayor",
     "subtitulo": "",
     "paginas": 14,
-    "peso": 3169101
+    "peso": 1725500
   },
   {
     "slug": "las-mariposas-de-mia",
@@ -53,7 +53,7 @@
     "titulo": "Las mariposas de Mía",
     "subtitulo": "",
     "paginas": 9,
-    "peso": 2228803
+    "peso": 1394881
   },
   {
     "slug": "la-semillita-dormida",
@@ -61,7 +61,7 @@
     "titulo": "La Semillita dormida",
     "subtitulo": "",
     "paginas": 8,
-    "peso": 1615908
+    "peso": 847557
   },
   {
     "slug": "bruna-y-su-viaje-al-espacio",
@@ -69,7 +69,7 @@
     "titulo": "Bruna y su viaje al espacio",
     "subtitulo": "",
     "paginas": 8,
-    "peso": 2318812
+    "peso": 1565837
   },
   {
     "slug": "hugo-se-viste-solo",
@@ -77,7 +77,7 @@
     "titulo": "Hugo se viste solo",
     "subtitulo": "",
     "paginas": 9,
-    "peso": 2377699
+    "peso": 1513691
   },
   {
     "slug": "jugando-con-mis-companeros",
@@ -85,7 +85,7 @@
     "titulo": "Jugando con mis compañeros",
     "subtitulo": "",
     "paginas": 9,
-    "peso": 2109895
+    "peso": 1400558
   },
   {
     "slug": "leo-y-la-silla-de-ruedas",
@@ -93,7 +93,7 @@
     "titulo": "Leo y el niño de la silla con ruedas",
     "subtitulo": "",
     "paginas": 14,
-    "peso": 3310960
+    "peso": 1847565
   },
   {
     "slug": "ponte-en-mi-lugar",
@@ -109,7 +109,7 @@
     "titulo": "Alba y el tarro de las cosas bonitas",
     "subtitulo": "",
     "paginas": 8,
-    "peso": 1282353
+    "peso": 775472
   },
   {
     "slug": "el-gigante-que-hablaba-bajito",
@@ -117,7 +117,7 @@
     "titulo": "El gigante que hablaba bajito",
     "subtitulo": "",
     "paginas": 8,
-    "peso": 1730923
+    "peso": 1021458
   },
   {
     "slug": "el-gran-dia-sin-panal-de-hugo",
@@ -125,7 +125,7 @@
     "titulo": "El gran día sin pañal de Hugo",
     "subtitulo": "",
     "paginas": 8,
-    "peso": 3766424
+    "peso": 3187643
   },
   {
     "slug": "emma-y-el-hada-de-los-chupetes",
@@ -133,7 +133,7 @@
     "titulo": "Emma y el hada de chupetes",
     "subtitulo": "",
     "paginas": 9,
-    "peso": 1724600
+    "peso": 1094811
   },
   {
     "slug": "hugo-y-valentina-no-quieren-compartir",
@@ -141,7 +141,7 @@
     "titulo": "Hugo y Valentina no quieren compartir",
     "subtitulo": "",
     "paginas": 8,
-    "peso": 1462909
+    "peso": 873963
   },
   {
     "slug": "la-fiesta-de-esperar-el-turno",
@@ -149,7 +149,7 @@
     "titulo": "La fiesta de esperar el turno",
     "subtitulo": "",
     "paginas": 9,
-    "peso": 2396073
+    "peso": 1532289
   },
   {
     "slug": "la-gran-aventura-de-mathias",
@@ -157,7 +157,7 @@
     "titulo": "La gran aventura de Mathias",
     "subtitulo": "",
     "paginas": 8,
-    "peso": 1785026
+    "peso": 1046843
   },
   {
     "slug": "la-torre-mas-alta-del-parque",
@@ -165,7 +165,7 @@
     "titulo": "La torre más alta del parque",
     "subtitulo": "",
     "paginas": 9,
-    "peso": 2433873
+    "peso": 1596677
   },
   {
     "slug": "leo-y-la-nube-que-se-perdio",
@@ -173,7 +173,7 @@
     "titulo": "Leo y la nube que se perdió",
     "subtitulo": "",
     "paginas": 9,
-    "peso": 1183911
+    "peso": 1216644
   },
   {
     "slug": "sofia-deja-el-panal",
@@ -181,6 +181,6 @@
     "titulo": "Sofía deja el pañal",
     "subtitulo": "",
     "paginas": 14,
-    "peso": 2635613
+    "peso": 1512430
   }
 ]
