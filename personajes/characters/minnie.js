@@ -3,6 +3,8 @@ CHARACTER({
   id: "minnie", name: "Minnie", emoji: "🎀", female: true,
   // Voz de ElevenLabs por defecto (se puede cambiar en Ajustes de voz)
   voiceId: "gMjKNUC2AFdB75p87M2h",
+  // Voz del navegador: tono y velocidad propios, y si busca voz de hombre o de mujer
+  browser: { pitch: 1.9, rate: 0.95, female: true },
   // Opciones de ropa (colores del vestido y el moño)
   looks: [{ value: "red", label: "Rojo clásico" }, { value: "pink", label: "Rosa (La Casa de Mickey)" }],
   // Hombros: desde donde giran los brazos

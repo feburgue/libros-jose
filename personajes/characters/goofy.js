@@ -3,6 +3,8 @@ CHARACTER({
   id: "goofy", name: "Goofy", emoji: "🐶", female: false,
   // Sin voz de ElevenLabs fija: usa la de la cuenta que tenga "Goofy" en el nombre, o la del navegador
   voiceId: "",
+  // Voz del navegador: grave, lenta y bonachona
+  browser: { pitch: 0.6, rate: 0.85 },
   looks: [],
   // Color del suéter de cuello alto
   colors: { m: "#f5821f", md: "#b85a0c" },

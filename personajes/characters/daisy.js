@@ -3,6 +3,8 @@ CHARACTER({
   id: "daisy", name: "Daisy", emoji: "🌸", female: true,
   // Usa la voz de Minnie con el tono un poco más grave (pitch), para ahorrar una voz de ElevenLabs
   voiceId: "gMjKNUC2AFdB75p87M2h",
+  // Voz del navegador: un poco menos aguda que Minnie y más rápida, con carácter
+  browser: { pitch: 1.6, rate: 1.05, female: true },
   pitch: "0.92",
   // Color del moño y los zapatos
   looks: [{ value: "pink", label: "Moño rosa" }, { value: "purple", label: "Moño violeta" }],

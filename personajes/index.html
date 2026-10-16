@@ -277,10 +277,10 @@
         <p class="hint">Cada frase nueva gasta créditos una sola vez: después queda guardada en este navegador.</p>
         <button id="prepare">⬇️ Preparar todas las voces (frases y juegos)</button>
       </div>
-      <div class="browser-only"><label for="voice">Voz</label><select id="voice"></select></div>
-      <div class="browser-only"><label for="pitch">Tono (agudo): <span id="pitchV"></span></label><input type="range" id="pitch" min="0.5" max="2" step="0.1"></div>
-      <div class="browser-only"><label for="rate">Velocidad: <span id="rateV"></span></label><input type="range" id="rate" min="0.5" max="1.4" step="0.05"></div>
-      <p class="hint browser-only">Si el tono no cambia, prueba otra voz de la lista: algunas voces ignoran el ajuste de tono.</p>
+      <div class="browser-only"><label for="voice">Voz de <span class="charName">Minnie</span></label><select id="voice"></select></div>
+      <div class="browser-only"><label for="pitch">Tono de <span class="charName">Minnie</span> (agudo): <span id="pitchV"></span></label><input type="range" id="pitch" min="0.1" max="2" step="0.1"></div>
+      <div class="browser-only"><label for="rate">Velocidad de <span class="charName">Minnie</span>: <span id="rateV"></span></label><input type="range" id="rate" min="0.5" max="1.5" step="0.05"></div>
+      <p class="hint browser-only">Cada personaje guarda su propia voz, tono y velocidad. Si el tono no cambia, prueba otra voz de la lista: las voces "Natural" u "Online" ignoran el ajuste de tono.</p>
     </div>
   </details>
 
@@ -385,44 +385,66 @@ const PRESETS = [
 
 /* ---------- voces ---------- */
 const MALE = /jorge|pablo|ra[uú]l|[aá]lvaro|tom[aá]s|mateo|gonzalo|lorenzo|diego|emilio|dar[ií]o|federico|gerardo|andr[eé]s|jorge|alonso|carlos|juan/i;
-function bestVoice(list){
-  const fem = /paulina|sabina|dalia|elena|helena|monica|mónica|laura|luc[ií]a|valentina|elvira|ximena|google español/i;
+const FEMALE = /paulina|sabina|dalia|elena|helena|monica|mónica|laura|luc[ií]a|valentina|elvira|ximena|google español/i;
+// Las voces "Natural"/"Online" suenan mejor pero ignoran el tono: si el personaje lo cambia
+// mucho (Goofy grave, Donald agudo), prefiere una voz que sí lo respete
+function bestVoice(list, female = true, needsPitch = false){
+  const who = female ? FEMALE : MALE;
   const latam = /es[-_](419|mx|ar|uy|us|co|cl)/i;
   const natural = /natural|neural|online/i;
-  return list.find(v => natural.test(v.name) && fem.test(v.name) && latam.test(v.lang))
-      || list.find(v => natural.test(v.name) && fem.test(v.name))
-      || list.find(v => fem.test(v.name) && latam.test(v.lang))
-      || list.find(v => fem.test(v.name))
-      || list.find(v => latam.test(v.lang))
-      || list[0];
+  const pitchable = list.filter(v => !natural.test(v.name));
+  const pool = needsPitch && pitchable.length ? pitchable : list;
+  return pool.find(v => natural.test(v.name) && who.test(v.name) && latam.test(v.lang))
+      || pool.find(v => natural.test(v.name) && who.test(v.name))
+      || pool.find(v => who.test(v.name) && latam.test(v.lang))
+      || pool.find(v => who.test(v.name))
+      || list.find(v => who.test(v.name))
+      || pool.find(v => latam.test(v.lang))
+      || pool[0];
 }
-function loadVoices(){
+function spanishVoices(){
   const all = synth.getVoices();
   const es = all.filter(v => v.lang.toLowerCase().startsWith('es'));
-  const list = es.length ? es : all;
+  return es.length ? es : all;
+}
+// Voz del navegador del personaje: la elegida en Ajustes, o la mejor de hombre o de mujer
+function charBrowserVoice(){
+  const list = spanishVoices();
+  return list.find(v => v.name === store.get('voice.' + CHAR.id, ''))
+      || bestVoice(list, CHAR.browser?.female ?? CHAR.female, Math.abs(+browserSetting('pitch') - 1) > 0.3);
+}
+function loadVoices(){
   const sel = $('#voice');
   sel.innerHTML = '';
-  list.forEach(v => {
+  spanishVoices().forEach(v => {
     const o = document.createElement('option');
     o.value = v.name; o.textContent = `${v.name} (${v.lang})`;
     sel.appendChild(o);
   });
-  const pick = list.find(v => v.name === store.get('voice', '')) || bestVoice(list);
+  const pick = charBrowserVoice();
   if (pick) sel.value = pick.name;
 }
-loadVoices();
-synth.onvoiceschanged = loadVoices;
 
 /* ---------- ajustes ---------- */
-function bindRange(id, def){
-  const el = $('#' + id), out = $('#' + id + 'V');
-  el.value = store.get(id, def);
-  const show = () => { out.textContent = el.value; store.set(id, el.value); };
-  el.oninput = show; show();
+// Tono y velocidad de la voz del navegador: cada personaje trae los suyos (CHAR.browser)
+// y lo que se cambie en Ajustes queda guardado para ese personaje
+const BROWSER_DEFAULT = { pitch: 1.9, rate: 0.95 };
+function browserSetting(k){
+  return store.get(k + '.' + CHAR.id, String(CHAR.browser?.[k] ?? BROWSER_DEFAULT[k]));
 }
-bindRange('pitch', '1.9');
-bindRange('rate', '0.95');
-$('#voice').onchange = e => store.set('voice', e.target.value);
+// Datos de la versión anterior (un solo tono, velocidad y voz para todos): quedan para Minnie
+for (const k of ['pitch', 'rate', 'voice'])
+  if (store.get(k + '.minnie', null) === null && store.get(k, null) !== null) store.set(k + '.minnie', store.get(k, ''));
+function showBrowserSettings(){
+  for (const k of ['pitch', 'rate']){ $('#' + k).value = browserSetting(k); $('#' + k + 'V').textContent = $('#' + k).value; }
+  const pick = charBrowserVoice();
+  if (pick) $('#voice').value = pick.name;
+}
+for (const k of ['pitch', 'rate'])
+  $('#' + k).oninput = () => { $('#' + k + 'V').textContent = $('#' + k).value; store.set(k + '.' + CHAR.id, $('#' + k).value); };
+$('#voice').onchange = e => store.set('voice.' + CHAR.id, e.target.value);
+loadVoices();
+synth.onvoiceschanged = loadVoices;
 // Vuelve a "Josefina" si quedó guardado el diminutivo que se probó
 if (store.get('name', null) === 'Jose') store.set('name', 'Josefina');
 try{ localStorage.removeItem('minnie.say'); }catch(e){}
@@ -780,17 +802,15 @@ function speak(raw, forcedGesture, fromAction){
 function speakBrowser(text, forcedGesture){
   // Frases cortas: evita que Chrome corte textos largos
   const parts = text.split(/(?<=[.!?…])\s+/).filter(Boolean);
-  const es = synth.getVoices().filter(v => v.lang.toLowerCase().startsWith('es'));
-  const male = !CHAR.female && (es.find(v => /natural|online/i.test(v.name) && MALE.test(v.name)) || es.find(v => MALE.test(v.name)));
-  const voice = male || synth.getVoices().find(v => v.name === $('#voice').value);
+  const voice = charBrowserVoice();
   let pending = parts.length;
   const done = () => { if (--pending <= 0){ setTalking(false); hearts(); } };
   let started = false;
   parts.forEach(p => {
     const u = new SpeechSynthesisUtterance(p);
     if (voice){ u.voice = voice; u.lang = voice.lang; } else u.lang = 'es-419';
-    u.pitch = +$('#pitch').value;
-    u.rate = +$('#rate').value;
+    u.pitch = +browserSetting('pitch');
+    u.rate = +browserSetting('rate');
     u.onstart = () => { setTalking(true); if (!started){ started = true; gesture(forcedGesture || gestureFor(text)); } };
     u.onboundary = () => { target = 1; };
     u.onend = done;
@@ -1497,6 +1517,7 @@ function applyCharacterUI(){
   applyOutfit();
   renderWardrobe();
   renderVoiceSelect();
+  showBrowserSettings();
   $('#elPitch').value = store.get('elPitch.' + CHAR.id, CHAR.pitch ?? (CHAR.id === 'minnie' ? store.get('elPitch', '1.0') : '1.0'));
   $('#elPitchV').textContent = $('#elPitch').value;
   status();

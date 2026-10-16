@@ -3,6 +3,8 @@ CHARACTER({
   id: "donald", name: "Donald", emoji: "🦆", female: false,
   // Voz de ElevenLabs por defecto (se puede cambiar en Ajustes de voz)
   voiceId: "NyN6nrH7ausSBWuLonyY",
+  // Voz del navegador: lo más agudo y apurado posible, como un pato enojado
+  browser: { pitch: 2, rate: 1.3 },
   looks: [],
   // Color de la camisa y el gorro
   colors: { m: "#2f5fb3", md: "#1d3c7c" },

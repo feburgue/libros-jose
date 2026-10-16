@@ -3,6 +3,8 @@ CHARACTER({
   id: "mickey", name: "Mickey", emoji: "🐭", female: false,
   // Voz de ElevenLabs por defecto (se puede cambiar en Ajustes de voz)
   voiceId: "i8vki8gZhHyJqjwRblDZ",
+  // Voz del navegador: falsete agudo y alegre
+  browser: { pitch: 1.8, rate: 1.05 },
   looks: [],
   // Hombros y manos en reposo (brazos de "manguera" como los de Minnie)
   shoulders: [[166, 282], [234, 282]],
