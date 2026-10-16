@@ -496,7 +496,8 @@ function renderVoiceSelect(){
   sel.value = cur;
 }
 
-async function loadElevenVoices(){
+// Al abrir la app no avisa nada si falla (lo ve Josefina); solo cuando se toca en Ajustes
+async function loadElevenVoices(fromUser){
   const key = $('#elKey').value.trim();
   if (!key) return;
   try{
@@ -508,10 +509,10 @@ async function loadElevenVoices(){
     elVoices = voices.map(v => ({ voice_id: v.voice_id, name: v.name }));
     store.set('elVoices', JSON.stringify(elVoices));
     renderVoiceSelect();
-  }catch(e){ status('No pude cargar las voces: revisa la API key.'); }
+  }catch(e){ if (fromUser) status('No pude cargar las voces: revisa la API key.'); }
 }
-$('#elKey').onchange = () => { store.set('elKey', $('#elKey').value.trim()); loadElevenVoices(); };
-$('#elLoad').onclick = loadElevenVoices;
+$('#elKey').onchange = () => { store.set('elKey', $('#elKey').value.trim()); elDownUntil = 0; loadElevenVoices(true); };
+$('#elLoad').onclick = () => loadElevenVoices(true);
 loadElevenVoices();
 
 let toastTimer = 0;
@@ -548,8 +549,15 @@ async function cachePut(k, blob){
 let audioCtx = null, analyser = null, currentSrc = null, speakToken = 0;
 const levels = new Float32Array(1024);
 
+// Si ElevenLabs falla (sin créditos, clave mala, sin internet), por 10 minutos ni lo intenta:
+// usa solo las frases ya guardadas y si no, la voz del navegador, sin la espera de cada pedido
+let elDownUntil = 0;
 // Devuelve el audio de una frase: del caché o pidiéndolo a ElevenLabs
 async function getClip(text, quiet){
+  try{ return await fetchClip(text, quiet); }
+  catch(e){ if (e.remote || e instanceof TypeError) elDownUntil = Date.now() + 10 * 60 * 1000; throw e; }
+}
+async function fetchClip(text, quiet){
   const key = $('#elKey').value.trim();
   const voiceId = $('#elVoice').value, model = $('#elModel').value;
   if (!voiceId) throw new Error(`${CHAR.name} todavía no tiene voz de ElevenLabs`);
@@ -559,6 +567,7 @@ async function getClip(text, quiet){
   if (!blob){
     if (!key) throw new Error('Falta la API key de ElevenLabs (en Ajustes de voz)');
     if (!navigator.onLine) throw new Error('Sin internet');
+    if (Date.now() < elDownUntil) throw new Error('ElevenLabs no respondió hace un rato');
     if (!quiet) status(`${CHAR.name} está pensando… 💭`);
     const r = await fetch(`${EL_API}/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
       method: 'POST',
@@ -571,7 +580,7 @@ async function getClip(text, quiet){
     if (!r.ok){
       let msg = r.status;
       try{ msg = (await r.json()).detail?.message || msg; }catch(e){}
-      throw new Error('ElevenLabs: ' + msg);
+      throw Object.assign(new Error('ElevenLabs: ' + msg), { remote: true });
     }
     blob = await r.blob();
     await cachePut(ck, blob);
@@ -792,7 +801,9 @@ function speak(raw, forcedGesture, fromAction){
     audioCtx.resume();
     speakEleven(text, token, forcedGesture).catch(err => {
       if (token !== speakToken) return;
-      status('⚠️ ' + err.message + ' — uso la voz del navegador.');
+      // Sin avisos (los ve Josefina): habla con la voz del navegador y listo
+      console.warn(err.message + ' — uso la voz del navegador.');
+      status();
       speakBrowser(text, forcedGesture);
     });
     return;
@@ -911,6 +922,7 @@ $('#prepare').onclick = async () => {
     .concat(Object.values(CHAR.reactions).flat(), ACTION_TEXTS, Object.values(WEAR_SAY).flat());
   const texts = [...new Set(all.map(fillText))];
   const btn = $('#prepare'); btn.disabled = true;
+  elDownUntil = 0; // lo pidió a mano: vuelve a intentar con ElevenLabs
   let ok = 0, fail = 0;
   for (const [i, t] of texts.entries()){
     status(`Preparando voces… ${i + 1} de ${texts.length}`);
