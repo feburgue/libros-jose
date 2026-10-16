@@ -134,6 +134,18 @@ a.v-tool{display:grid}
   .v-header h1 small{display:none}
   .v-header,.v-footer{padding-left:10px; padding-right:10px}
 }
+/* teléfono apaisado: el alto es lo que falta, así que las barras se achican
+   y, si es muy bajo, la de abajo se va (las flechas alcanzan para pasar de hoja) */
+@media (max-height:500px){
+  .v-header{padding:4px 12px; padding-top:calc(4px + env(safe-area-inset-top))}
+  .v-footer{padding:4px 12px; padding-bottom:calc(4px + env(safe-area-inset-bottom))}
+  .v-tool{width:32px; height:32px}
+  .v-tool svg{width:19px; height:19px}
+  .v-header h1{font-size:13px}
+}
+@media (max-height:420px){
+  .v-footer{display:none}
+}
 @media (prefers-reduced-motion:reduce){
   #v-shift{transition:none}
   .v-page.v-pendiente{animation:none}
