@@ -82,6 +82,11 @@ async function grabar(texto){
     process.exit(1);
   }
   const libros = JSON.parse(fs.readFileSync('libros.json', 'utf8'));
+  // también los textos que no son libros de la estantería (por ejemplo, el sendero de los tres chanchitos)
+  for (const f of fs.readdirSync('textos')){
+    const slug = f.replace(/\.txt$/, '');
+    if (f.endsWith('.txt') && !libros.some(l => l.slug === slug)) libros.push({ slug });
+  }
   let grabadas = 0, letras = 0;
   for (const l of libros){
     if (pedidos.size && !pedidos.has(l.slug)) continue;
