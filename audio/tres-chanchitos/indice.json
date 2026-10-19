@@ -1,17 +1,17 @@
 {
- "voz": "es-AR-ElenaNeural",
- "velocidad": "-25%",
- "tono": "-4%",
+ "motor": "gemini",
+ "modelo": "gemini-2.5-flash-preview-tts",
+ "voz": "Sulafat",
  "paginas": {
-  "1": "d0979962fd52",
-  "2": "087bfc02cdfb",
-  "3": "430c32cf83b7",
-  "4": "2e854611d61b",
-  "5": "3b95f2dd377e",
-  "6": "da91e4c54de3",
-  "7": "d4893b1bdb21",
-  "8": "3af0e7c2c74e",
-  "9": "3abbbe53ea39",
-  "10": "e08c1e40fd59"
+  "1": "ad6552c3e092",
+  "2": "622054b160f9",
+  "3": "38ced069e8bc",
+  "4": "73b61031a1a9",
+  "5": "8549be63c201",
+  "6": "c2f99e061b30",
+  "7": "05b588f1ae52",
+  "8": "637362245fe3",
+  "9": "689b4289d077",
+  "10": "86d93f97dc52"
  }
 }
