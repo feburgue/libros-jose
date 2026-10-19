@@ -1,0 +1,32 @@
+# ¡Cuidado con el perrito! — frases del juego (perro/index.html)
+# Una sección por frase. Se pueden corregir a mano y volver a grabar.
+
+== 1
+¡Te toca, Josefina!
+
+== 2
+¡Te toca, mamá!
+
+== 3
+¡Te toca, papá!
+
+== 4
+¡Ñam! ¡Jajaja, te atrapé!
+
+== 5
+¡Ganó Josefina!
+
+== 6
+¡Ganó mamá!
+
+== 7
+¡Ganó papá!
+
+== 8
+¡Empataron! ¡Qué bien jugaron!
+
+== 9
+¡Uf, qué suerte!
+
+== 10
+¡Vamos a jugar! Apretá un diente, despacito...

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>¡Cuidado con el perrito!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#2a1a0f">
+<link rel="shortcut icon" type="image/png" href="../favicon.ico">
+<!-- Perrito y diente pintados con Nano Banana (Gemini) a partir de textos de Claude;
+     animación con GSAP 3.12.5 (cerditos/lib). -->
+<script src="../cerditos/lib/gsap.min.js"></script>
+<script src="../lib/despierto.js"></script>
+<style>
+  :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
+  html,body{margin:0; height:100%; overflow:hidden; background:#fbf1de; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:none}
+  #vista{position:fixed; inset:0}
+  #escena{position:absolute; left:0; top:0; width:2048px; height:2048px; transform-origin:0 0}
+  #escena img.cara{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+  #cerrado{opacity:0}
+  .diente{position:absolute; cursor:pointer}
+  .diente img{position:absolute; left:0; width:100%; pointer-events:none; filter:drop-shadow(0 3px 2px rgba(80,20,20,.35))}
+  .diente.arriba img{top:0; transform:scaleY(-1)}
+  .diente.abajo img{bottom:0}
+  .diente.apretado img{filter:brightness(.88) drop-shadow(0 1px 1px rgba(80,20,20,.3))}
+  #turno{position:fixed; top:max(10px, env(safe-area-inset-top)); left:12px; z-index:3; display:flex; gap:8px; flex-wrap:wrap; max-width:calc(100% - 130px)}
+  .jug{background:rgba(255,248,236,.92); color:var(--tinta); border-radius:30px; padding:6px 14px; font:bold 20px/1 Georgia,serif;
+    border:3px solid transparent; box-shadow:0 3px 10px rgba(0,0,0,.15); transition:transform .3s}
+  .jug.activo{border-color:var(--c); transform:scale(1.12)}
+  .jug b{color:var(--c)}
+  #barra{position:fixed; top:max(10px, env(safe-area-inset-top)); right:12px; display:flex; gap:8px; z-index:3}
+  #barra button, #barra a{all:unset; cursor:pointer; width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+    background:rgba(42,26,15,.5); color:var(--crema); font-size:22px}
+  #barra svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  #nam{position:fixed; left:50%; top:42%; transform:translate(-50%,-50%); font:bold clamp(60px,16vw,150px)/1 Georgia,serif; color:#fff;
+    text-shadow:0 6px 0 #d9534f, 0 12px 26px rgba(0,0,0,.35); opacity:0; pointer-events:none; z-index:4}
+  .papelito{position:fixed; width:12px; height:18px; border-radius:3px; pointer-events:none; z-index:5}
+  .cartel{position:fixed; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.45); z-index:6; transition:opacity .6s}
+  .cartel.fuera{opacity:0; pointer-events:none}
+  .cartel .caja{text-align:center; color:var(--crema); padding:0 16px}
+  .cartel h1{margin:0 0 12px; font:bold clamp(30px,6vw,56px)/1.1 Georgia,serif; text-shadow:0 3px 14px rgba(0,0,0,.55)}
+  .cartel p{margin:0 0 18px; font:600 clamp(18px,3.4vw,26px)/1.35 Georgia,serif; text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .quienes{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:0 0 22px}
+  .quienes button{all:unset; cursor:pointer; padding:12px 20px; border-radius:30px; font:bold 22px/1 Georgia,serif;
+    background:rgba(255,248,236,.25); color:var(--crema); border:3px solid rgba(255,248,236,.5)}
+  .quienes button.si{background:var(--c); border-color:#fff; color:#fff}
+  .grande{all:unset; cursor:pointer; background:var(--ambar); color:var(--tinta); font:600 24px/1 system-ui,sans-serif;
+    padding:20px 36px; border-radius:50px; box-shadow:0 6px 20px rgba(0,0,0,.35)}
+</style>
+</head>
+<body>
+<div id="vista"><div id="escena">
+  <img class="cara" id="abierto" src="img/abierto.jpg" alt="">
+  <img class="cara" id="cerrado" src="img/cerrado.jpg" alt="">
+</div></div>
+<div id="turno"></div>
+<div id="nam">¡ÑAM!</div>
+<div id="barra">
+  <a href="../index.html" aria-label="Volver a los libros" title="Todos los libros"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
+  <button id="sonido" aria-label="Sonido prendido" title="Sonido">🔊</button>
+</div>
+<div class="cartel" id="inicio"><div class="caja">
+  <h1>¡Cuidado con el perrito!</h1>
+  <p>¿Quién juega?</p>
+  <div class="quienes" id="quienes"></div>
+  <button class="grande" id="jugar">▶ Jugar</button>
+</div></div>
+<div class="cartel fuera" id="final"><div class="caja">
+  <h1 id="finalTitulo"></h1>
+  <p id="finalTexto"></p>
+  <button class="grande" id="otraVez">▶ Jugar de nuevo</button>
+</div></div>
+
+<script>
+(function () {
+"use strict";
+var $ = function (s) { return document.querySelector(s); };
+var store = {
+  get: function (k, d) { try { var v = localStorage.getItem("perro." + k); return v === null ? d : v; } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem("perro." + k, v); } catch (e) {} }
+};
+var conSonido = store.get("sonido", "1") === "1";
+
+/* ---------- jugadores ---------- */
+var JUGADORES = [
+  { id: "josefina", nombre: "Josefina", color: "#e0609a", turno: 1, gano: 5 },
+  { id: "mama", nombre: "Mamá", color: "#3f9b6f", turno: 2, gano: 6 },
+  { id: "papa", nombre: "Papá", color: "#3f7fd0", turno: 3, gano: 7 }
+];
+var elegidos = (store.get("juegan", "josefina,mama,papa") || "josefina").split(",");
+function pintarQuienes() {
+  $("#quienes").innerHTML = "";
+  JUGADORES.forEach(function (j) {
+    var b = document.createElement("button");
+    b.textContent = j.nombre; b.style.setProperty("--c", j.color);
+    b.className = elegidos.indexOf(j.id) >= 0 ? "si" : "";
+    b.onclick = function () {
+      var i = elegidos.indexOf(j.id);
+      if (i >= 0) { if (elegidos.length > 1) elegidos.splice(i, 1); } else elegidos.push(j.id);
+      elegidos = JUGADORES.filter(function (q) { return elegidos.indexOf(q.id) >= 0; }).map(function (q) { return q.id; });
+      store.set("juegan", elegidos.join(",")); pintarQuienes();
+    };
+    $("#quienes").appendChild(b);
+  });
+}
+
+/* ---------- los dientes ----------
+   En coordenadas del dibujo (2048 x 2048): 8 cuelgan de la encía de arriba y 7 se
+   paran en la de abajo, siguiendo la curva de la boca. */
+var ARRIBA = { desde: [690, 1088], hasta: [1375, 1088], centro: 1118, n: 8 };
+var ABAJO = { desde: [775, 1555], hasta: [1290, 1555], centro: 1625, n: 7 };
+var dientes = [], escena = $("#escena");
+function fila(f, lado) {
+  var paso = (f.hasta[0] - f.desde[0]) / f.n, ancho = paso * .96, alto = ancho * 1.1;
+  for (var i = 0; i < f.n; i++) {
+    var x = f.desde[0] + paso * (i + .5), t = (i + .5) / f.n;
+    var y = f.desde[1] + (f.centro - f.desde[1]) * 4 * t * (1 - t);   // la encía es curva
+    var d = document.createElement("div"); d.className = "diente " + lado;
+    d.innerHTML = '<img src="img/diente.webp" alt="">';
+    d.style.left = (x - ancho / 2) + "px"; d.style.width = ancho + "px";
+    // la zona para tocar es más alta que el diente, para dedos chiquitos
+    if (lado === "arriba") { d.style.top = y + "px"; d.style.height = alto * 1.5 + "px"; }
+    else { d.style.top = (y - alto * 1.5) + "px"; d.style.height = alto * 1.5 + "px"; }
+    d.querySelector("img").style.height = alto + "px";
+    escena.appendChild(d);
+    dientes.push({ el: d, img: d.querySelector("img"), lado: lado, apretado: false });
+  }
+}
+fila(ARRIBA, "arriba"); fila(ABAJO, "abajo");
+
+/* ---------- cámara: la boca bien grande en el centro ---------- */
+function acomodar() {
+  var vw = innerWidth, vh = innerHeight, arriba = 70;
+  var s = Math.min(vw * .98 / 900, (vh - arriba) * .96 / 700);
+  var cx = 1032, cy = 1370;
+  var x = vw / 2 - cx * s, y = arriba + (vh - arriba) / 2 - cy * s;
+  // que la cara cubra toda la pantalla (sin franjas vacías)
+  if (2048 * s >= vh) y = Math.min(0, Math.max(vh - 2048 * s, y));
+  if (2048 * s >= vw) x = Math.min(0, Math.max(vw - 2048 * s, x));
+  escena.style.transform = "translate(" + x + "px," + y + "px) scale(" + s + ")";
+}
+addEventListener("resize", acomodar);
+
+/* ---------- sonidos ---------- */
+var ctx = null;
+function audioCtx() { try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); } catch (e) {} return ctx; }
+function tono(f0, f1, dur, tipo, vol, cuando) {
+  var c = audioCtx(); if (!c || !conSonido) return;
+  var t = c.currentTime + (cuando || 0), o = c.createOscillator(), g = c.createGain();
+  o.type = tipo || "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol || .2, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .02);
+}
+var sfx = {
+  clic: function () { tono(900, 500, .06, "square", .06); tono(300, 200, .08, "sine", .15, .02); },
+  suspenso: function () { for (var k = 0; k < 6; k++) tono(330 + k * 40, 330 + k * 40, .09, "triangle", .08, k * .12); },
+  nam: function () { tono(160, 70, .35, "sawtooth", .12); tono(500, 180, .25, "sine", .2, .05); },
+  festejo: function () { [523, 659, 784, 1046].forEach(function (f, k) { tono(f, f, .18, "triangle", .15, k * .12); }); }
+};
+
+/* ---------- frases (Gemini si están grabadas; si no, voz del navegador) ---------- */
+var frases = {}, audios = {}, voz = new Audio();
+fetch("../textos/perro.txt").then(function (r) { return r.text(); }).then(function (t) {
+  var a = null;
+  t.split(/\r?\n/).forEach(function (l) {
+    var m = l.match(/^==\s*(\d+)\s*$/);
+    if (m) { a = +m[1]; frases[a] = ""; return; }
+    if (a !== null && l.trim() && !/^#/.test(l)) frases[a] += l.trim() + " ";
+  });
+}).catch(function () {});
+fetch("../audio/perro/indice.json").then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) { audios = j.paginas || {}; }).catch(function () {});
+function decir(n) {
+  if (!conSonido) return;
+  if (audios[n]) { voz.src = "../audio/perro/p" + (n < 10 ? "0" : "") + n + ".mp3"; voz.play().catch(function () {}); return; }
+  var s = window.speechSynthesis; if (!s || !frases[n]) return;
+  s.cancel();
+  var u = new SpeechSynthesisUtterance(frases[n]);
+  var es = s.getVoices().filter(function (v) { return /^es/i.test(v.lang); });
+  var v = es.filter(function (v) { return /paulina|sabina|dalia|elena|helena|laura|valentina|google español/i.test(v.name); })[0] || es[0];
+  if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "es-419";
+  u.rate = .95; u.pitch = 1.1; s.speak(u);
+}
+
+/* ---------- el juego ---------- */
+var jugando = false, malo = -1, turno = 0, puntos = {}, enJuego = [], esperando = false;
+function pintarTurno() {
+  $("#turno").innerHTML = enJuego.map(function (j, i) {
+    return '<div class="jug' + (i === turno && jugando ? " activo" : "") + '" style="--c:' + j.color + '">' + j.nombre + ' <b>' + puntos[j.id] + '</b></div>';
+  }).join("");
+}
+function abrir() {
+  gsap.set("#cerrado", { opacity: 0 }); gsap.set("#abierto", { opacity: 1 });
+  dientes.forEach(function (d) { d.apretado = false; d.el.classList.remove("apretado"); gsap.set(d.img, { y: 0, opacity: 1 }); });
+}
+function empezar() {
+  audioCtx();
+  enJuego = JUGADORES.filter(function (j) { return elegidos.indexOf(j.id) >= 0; });
+  puntos = {}; enJuego.forEach(function (j) { puntos[j.id] = 0; });
+  turno = 0; malo = Math.floor(Math.random() * dientes.length); esperando = false;
+  abrir();
+  $("#inicio").classList.add("fuera"); $("#final").classList.add("fuera");
+  jugando = true; pintarTurno();
+  decir(enJuego.length > 1 ? enJuego[0].turno : 10);
+}
+function apretar(i) {
+  var d = dientes[i];
+  if (!jugando || esperando || d.apretado) return;
+  d.apretado = true; d.el.classList.add("apretado");
+  sfx.clic();
+  // el diente se hunde en la encía
+  gsap.to(d.img, { y: d.lado === "arriba" ? -d.img.offsetHeight * .35 : d.img.offsetHeight * .35, duration: .15, ease: "power2.out" });
+  if (i === malo) { nam(); return; }
+  var j = enJuego[turno];
+  puntos[j.id]++;
+  // un temblorcito de nervios: más fuerte cuantos menos dientes quedan
+  var quedan = dientes.filter(function (q) { return !q.apretado; }).length;
+  gsap.fromTo("#vista", { x: 0 }, { x: quedan < 5 ? 7 : 4, duration: .06, yoyo: true, repeat: 5, clearProps: "x" });
+  if (quedan === 1) { decir(9); }
+  if (enJuego.length > 1) {
+    turno = (turno + 1) % enJuego.length;
+    esperando = true;
+    setTimeout(function () { esperando = false; pintarTurno(); decir(enJuego[turno].turno); }, 700);
+  }
+  pintarTurno();
+}
+function nam() {
+  jugando = false; esperando = true;
+  var perdio = enJuego[turno];
+  // suspenso cortito: tiembla y hace un ruidito, y después ¡ñam! (despacito, sin morder)
+  sfx.suspenso();
+  gsap.fromTo("#vista", { x: 0 }, { x: 9, duration: .05, yoyo: true, repeat: 15, clearProps: "x" });
+  setTimeout(function () {
+    sfx.nam(); decir(4);
+    dientes.forEach(function (d) { gsap.to(d.img, { opacity: 0, duration: .25 }); });
+    gsap.to("#cerrado", { opacity: 1, duration: .3 });
+    gsap.to("#abierto", { opacity: 0, duration: .3 });
+    gsap.fromTo("#nam", { opacity: 0, scale: .4 }, { opacity: 1, scale: 1, duration: .35, ease: "back.out(2.5)" });
+    gsap.to("#nam", { opacity: 0, duration: .5, delay: 1.4 });
+    setTimeout(function () { final(perdio); }, 2300);
+  }, 900);
+}
+function final(perdio) {
+  var titulo, texto;
+  if (enJuego.length === 1) {
+    var n = puntos[enJuego[0].id];
+    titulo = "¡Muy bien, " + enJuego[0].nombre + "!";
+    texto = "Apretaste " + n + (n === 1 ? " diente" : " dientes") + " antes del ñam 🦷";
+    decir(enJuego[0].gano);
+  } else {
+    // gana el que más dientes apretó sin hacer cerrar la boca: el atrapado no puede ganar
+    var pueden = enJuego.filter(function (j) { return j !== perdio; });
+    var max = Math.max.apply(null, pueden.map(function (j) { return puntos[j.id]; }));
+    var ganan = pueden.filter(function (j) { return puntos[j.id] === max; });
+    var nombres = ganan.map(function (j) { return j.nombre; });
+    titulo = ganan.length > 1 ? "¡Ganaron " + nombres.slice(0, -1).join(", ") + " y " + nombres[nombres.length - 1] + "!" : "¡Ganó " + ganan[0].nombre + "!";
+    texto = enJuego.map(function (j) { return j.nombre + ": " + puntos[j.id] + " 🦷"; }).join(" · ") + "<br>El perrito atrapó a " + perdio.nombre + " 🐶";
+    decir(ganan.length > 1 ? 8 : ganan[0].gano);
+  }
+  $("#finalTitulo").textContent = titulo; $("#finalTexto").innerHTML = texto;
+  festejo(); pintarTurno();
+  $("#final").classList.remove("fuera");
+}
+function festejo() {
+  sfx.festejo();
+  var colores = ["#f6c945", "#f28fb0", "#7cc4f2", "#9be08a", "#c7a3f0", "#f2a567"];
+  for (var k = 0; k < 50; k++) {
+    var e = document.createElement("div"); e.className = "papelito"; e.style.background = colores[k % colores.length]; document.body.appendChild(e);
+    gsap.fromTo(e, { x: innerWidth / 2, y: innerHeight * .3, rotation: 0, opacity: 1 },
+      { x: innerWidth / 2 + (Math.random() - .5) * innerWidth, y: innerHeight * (.1 + Math.random() * .9), rotation: Math.random() * 720,
+        opacity: 0, duration: 2 + Math.random(), ease: "power2.out", onComplete: (function (el) { return function () { el.remove(); }; })(e) });
+  }
+}
+dientes.forEach(function (d, i) { d.el.addEventListener("pointerdown", function () { apretar(i); }); });
+$("#jugar").addEventListener("click", empezar);
+$("#otraVez").addEventListener("click", function () { $("#final").classList.add("fuera"); $("#inicio").classList.remove("fuera"); abrir(); pintarQuienes(); });
+$("#sonido").addEventListener("click", function () {
+  conSonido = !conSonido; store.set("sonido", conSonido ? "1" : "0");
+  this.textContent = conSonido ? "🔊" : "🔇"; if (!conSonido && window.speechSynthesis) speechSynthesis.cancel();
+});
+$("#sonido").textContent = conSonido ? "🔊" : "🔇";
+
+pintarQuienes();
+acomodar();
+})();
+</script>
+</body>
+</html>
