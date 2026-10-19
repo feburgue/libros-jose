@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>El lobo y los siete cabritos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a1a0f">
+<link rel="shortcut icon" type="image/png" href="../favicon.ico">
+<!-- Mapa, interior y personajes pintados con Nano Banana (Gemini) a partir de
+     textos de Claude; animación con GSAP 3.12.5 (cerditos/lib). -->
+<script src="../cerditos/lib/gsap.min.js"></script>
+<script src="../lib/despierto.js"></script>
+<style>
+  :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
+  html,body{margin:0; height:100%; overflow:hidden; background:#5d7d4a; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none}
+  #fondo{position:fixed; inset:-40px; background:url(img/mapa.jpg) center/cover; filter:blur(24px) brightness(.85)}
+  .vista{position:fixed; inset:0; overflow:hidden}
+  #vistaAdentro{opacity:0; visibility:hidden; background:#c9a37a}
+  .mundo{position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform}
+  #mundo{width:1536px; height:2752px}
+  #adentro{width:2752px; height:1536px}
+  .lamina{position:absolute; inset:0; width:100%; height:100%}
+  .pieza{position:absolute; left:0; top:0; will-change:transform}
+  .pieza img{position:absolute; display:block; pointer-events:none}
+  #tarde, #noche{position:absolute; inset:0; pointer-events:none; opacity:0}
+  #noche{background:linear-gradient(#0f1a3d, #26346a 30%, #2c3a70); mix-blend-mode:multiply}
+  .estrella{position:absolute; width:6px; height:6px; border-radius:50%; background:#fff8dc; box-shadow:0 0 8px #fff3b0; opacity:0}
+  #luna{position:absolute; left:1240px; top:70px; width:110px; height:110px; border-radius:50%; background:#fbf3d0; box-shadow:0 0 50px 12px rgba(255,244,190,.45); opacity:0}
+  #luz{position:absolute; left:520px; top:480px; width:300px; height:260px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,226,140,.95) 0%, rgba(255,214,120,.5) 30%, rgba(255,214,120,0) 68%); opacity:0; mix-blend-mode:screen}
+  .humo{position:absolute; width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,.75); filter:blur(4px); opacity:0}
+  .chispa{position:absolute; width:14px; height:14px; border-radius:50%; opacity:0}
+  .zeta{position:absolute; font:bold 44px Georgia,serif; color:#5b6fa8; opacity:0}
+  #texto{position:fixed; left:50%; bottom:max(12px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(880px, calc(100% - 24px));
+    background:rgba(255,248,236,.9); color:var(--tinta); border-radius:16px; padding:10px 16px; box-shadow:0 4px 18px rgba(0,0,0,.25);
+    font:15px/1.4 Georgia,'Times New Roman',serif; max-height:32vh; overflow:auto; transition:opacity .6s; z-index:2}
+  #texto:empty, body:not(.con-texto) #texto{opacity:0; pointer-events:none}
+  #texto p{margin:0 0 3px}
+  #controles{position:fixed; top:max(10px, env(safe-area-inset-top)); right:12px; display:flex; gap:8px; z-index:3}
+  #controles button, #controles a{all:unset; cursor:pointer; width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+    background:rgba(42,26,15,.55); color:var(--crema); backdrop-filter:blur(6px); font:700 16px/1 Georgia,serif}
+  #controles svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  #pausa svg{fill:currentColor; stroke:none}
+  body.con-texto #verTexto{background:rgba(242,165,103,.92); color:var(--tinta)}
+  #inicio{position:fixed; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.35); transition:opacity 1s; z-index:4}
+  #inicio.fuera{opacity:0; pointer-events:none}
+  #inicio .caja{text-align:center; color:var(--crema); padding:0 16px}
+  #inicio h1{margin:0 0 18px; font:bold clamp(28px,5.5vw,52px)/1.1 Georgia,serif; text-shadow:0 3px 14px rgba(0,0,0,.55)}
+  #contar{all:unset; cursor:pointer; background:var(--ambar); color:var(--tinta); font:600 20px/1 system-ui,sans-serif; padding:16px 28px; border-radius:40px;
+    box-shadow:0 6px 20px rgba(0,0,0,.35); display:inline-flex; align-items:center; gap:10px}
+  #contar svg{width:22px; height:22px; fill:currentColor}
+  @media (max-height:430px){ #texto{font-size:13px; padding:7px 12px; max-height:28vh} }
+</style>
+</head>
+<body>
+<div id="fondo"></div>
+<div class="vista" id="vistaMapa"><div class="mundo" id="mundo"><img class="lamina" src="img/mapa.jpg" alt=""></div></div>
+<div class="vista" id="vistaAdentro"><div class="mundo" id="adentro"><img class="lamina" src="img/interior.jpg" alt=""></div></div>
+<div id="texto" aria-live="polite"></div>
+<div id="controles">
+  <a href="../index.html" aria-label="Volver a los libros" title="Todos los libros"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
+  <button id="verTexto" aria-label="Mostrar el texto" title="Mostrar el texto">Aa</button>
+  <button id="atras" aria-label="Escena anterior" title="Anterior"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></svg></button>
+  <button id="pausa" aria-label="Pausar" title="Pausar"></button>
+  <button id="adelante" aria-label="Escena siguiente" title="Siguiente"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg></button>
+</div>
+<div id="inicio"><div class="caja">
+  <h1>El lobo y los siete cabritos</h1>
+  <button id="contar"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>Contar el cuento</button>
+</div></div>
+
+<script>
+(function () {
+"use strict";
+var $ = function (s) { return document.querySelector(s); };
+var mapa = $("#mundo"), adentro = $("#adentro");
+
+/* ---------- lugares (en coordenadas de cada lámina) ---------- */
+// Sendero del mapa (1536 x 2752), de la casita (arriba) al árbol y el bosque (abajo)
+var SENDERO = [[640,660],[780,710],[840,770],[760,840],[580,880],[440,930],[480,980],[660,1020],[800,1060],[780,1120],
+  [600,1200],[540,1260],[600,1320],[700,1370],[820,1400],[940,1440],[980,1520],[800,1600],[720,1660],[800,1720],
+  [940,1760],[1020,1810],[980,1860],[840,1920],[640,1980],[400,2060],[220,2160],[180,2260],[280,2340],[440,2420],
+  [600,2460],[800,2540],[1000,2620],[1200,2700],[1360,2800]];
+var PASO = { casa: 0, almacen: 8, molino: 20, arbol: 31, fin: 34 };
+var LUGAR = { puerta: [640, 690], ventana: [735, 690], almacen: [880, 1050], molino: [985, 1790], siesta: [1010, 2470], arroyo: [830, 2300] };
+// Interior (2752 x 1536): de dónde salen y adónde se esconde cada cabrito
+var ESCONDITE = [[500, 1290], [750, 800], [1190, 1015], [1560, 995], [1720, 960], [2120, 1120], [2530, 960]];
+var ALFOMBRA = [[1020, 1330], [1180, 1400], [1330, 1310], [1480, 1410], [1630, 1320], [1780, 1400], [1400, 1460]];
+var CAMARA = { casa: [650, 640, 620], almacen: [880, 1000, 640], molino: [990, 1720, 660], arbol: [940, 2400, 680] };
+
+/* ---------- piezas ---------- */
+function pieza(mundo, id, src, alto, x, y) {
+  var d = document.createElement("div");
+  d.className = "pieza"; d.id = id;
+  d.innerHTML = '<div class="giro"><div class="cuerpo"><img alt="" src="img/' + src + '"></div></div>';
+  mundo.appendChild(d);
+  var img = d.querySelector("img");
+  img.style.height = alto + "px";
+  function medir() {
+    var ancho = alto * img.naturalWidth / img.naturalHeight;
+    img.style.width = ancho + "px"; img.style.left = -ancho / 2 + "px"; img.style.top = -alto + "px";
+  }
+  if (img.complete && img.naturalWidth) medir(); else img.onload = medir;
+  d._alto = alto;
+  gsap.set(d, { x: x, y: y });
+  return d;
+}
+// Cada cabrito con su pañuelo; el último es el más chiquito
+var COLORES = ["rojo", "amarillo", "azul", "verde", "violeta", "naranja", "rosa"];
+// En la puerta, en dos filas
+var EN_LA_PUERTA = [[470, 770], [545, 790], [620, 770], [695, 790], [770, 770], [520, 840], [650, 845]];
+var P = {}, C = [], CA = [];
+function armar() {
+  document.querySelectorAll(".pieza, .estrella, .humo, .chispa, .zeta, #noche, #luna, #luz").forEach(function (e) { e.remove(); });
+  C = []; CA = [];
+  P.mama = pieza(mapa, "mama", "mama-cabra.webp", 170, 520, 740);
+  for (var i = 0; i < 7; i++) {
+    var chico = i === 6;
+    var dib = "cabrito-" + COLORES[i] + ".webp";
+    C.push(pieza(mapa, "c" + i, dib, chico ? 72 : 90, EN_LA_PUERTA[i][0], EN_LA_PUERTA[i][1]));
+    CA.push(pieza(adentro, "ca" + i, dib, chico ? 210 : 270, ALFOMBRA[i][0], ALFOMBRA[i][1]));
+  }
+  P.lobo = pieza(mapa, "lobo", "lobo-camina.webp", 220, 700, 1060);
+  gsap.set(P.lobo, { autoAlpha: 0 });
+  P.loboAdentro = pieza(adentro, "loboAdentro", "lobo-camina.webp", 620, -300, 1420);
+  P.mamaAdentro = pieza(adentro, "mamaAdentro", "mama-cabra.webp", 520, -300, 1420);
+  var n = document.createElement("div"); n.id = "noche"; mapa.appendChild(n);
+  for (var e = 0; e < 60; e++) {
+    var s = document.createElement("div"); s.className = "estrella";
+    s.style.left = ((e * 263) % 1500 + 18) + "px"; s.style.top = (14 + (e * 97) % 300) + "px"; mapa.appendChild(s);
+  }
+  ["luna", "luz"].forEach(function (id) { var d = document.createElement("div"); d.id = id; mapa.appendChild(d); });
+  for (var j = 0; j < 3; j++) {
+    var h = document.createElement("div"); h.className = "humo"; mapa.appendChild(h);
+    gsap.fromTo(h, { x: 590, y: 330, scale: .4, opacity: 0 }, { x: 630, y: 200, scale: 1.6, keyframes: { opacity: [0, .7, 0] }, duration: 7, repeat: -1, delay: j * 2.3, ease: "sine.out" });
+  }
+  for (var k = 0; k < 24; k++) { var c = document.createElement("div"); c.className = "chispa"; mapa.appendChild(c); }
+  for (var z = 0; z < 3; z++) { var zz = document.createElement("div"); zz.className = "zeta"; zz.textContent = "z"; mapa.appendChild(zz); }
+  document.querySelectorAll(".pieza").forEach(function (p) {
+    gsap.to(p.querySelector(".cuerpo"), { scaleY: 1.03, transformOrigin: "50% 100%", duration: 1.8, yoyo: true, repeat: -1, ease: "sine.inOut", delay: Math.random() });
+  });
+  verAdentro(false, 0);
+}
+
+/* ---------- cámaras: una para el mapa y otra para adentro de la casa ---------- */
+var cam = { x: 768, y: 1376, alto: 2752 };
+function aplicarCamara() {
+  var v = $("#vistaMapa"), vw = v.clientWidth, vh = v.clientHeight, s = vh / cam.alto;
+  var x = vw / 2 - cam.x * s, y = vh / 2 - cam.y * s;
+  if (1536 * s >= vw) x = Math.min(0, Math.max(vw - 1536 * s, x)); else x = (vw - 1536 * s) / 2;
+  if (2752 * s >= vh) y = Math.min(0, Math.max(vh - 2752 * s, y));
+  mapa.style.transform = "translate(" + x + "px," + y + "px) scale(" + s + ")";
+  // adentro: la habitación entera, cubriendo la pantalla
+  var a = $("#vistaAdentro"), aw = a.clientWidth, ah = a.clientHeight, sa = Math.max(aw / 2752, ah / 1536);
+  adentro.style.transform = "translate(" + (aw - 2752 * sa) / 2 + "px," + (ah - 1536 * sa) / 2 + "px) scale(" + sa + ")";
+}
+function camara(x, y, alto, dur) {
+  gsap.killTweensOf(cam);
+  if (!dur) { cam.x = x; cam.y = y; cam.alto = alto; aplicarCamara(); return; }
+  gsap.to(cam, { x: x, y: y, alto: alto, duration: dur, ease: "sine.inOut", onUpdate: aplicarCamara });
+}
+function irA(lugar, dur) { var c = CAMARA[lugar]; camara(c[0], c[1], c[2], dur); }
+// entrar a la casa: la cámara se acerca a la puerta y aparece la habitación
+function verAdentro(si, dur) {
+  if (dur === undefined) dur = 1.6;
+  if (si && dur) camara(LUGAR.puerta[0], LUGAR.puerta[1] - 60, 260, dur);
+  gsap.to("#vistaAdentro", { autoAlpha: si ? 1 : 0, duration: dur, delay: si && dur ? dur * .6 : 0 });
+}
+window.addEventListener("resize", aplicarCamara);
+
+/* ---------- moverse ---------- */
+function pos(el) { return [gsap.getProperty(el, "x"), gsap.getProperty(el, "y")]; }
+function recorrer(el, puntos, vel, tl, en) {
+  var t = en || 0, ant = pos(el), cuerpo = el.querySelector(".cuerpo"), giro = el.querySelector(".giro"), total = 0;
+  puntos.forEach(function (q) {
+    var d = Math.hypot(q[0] - ant[0], q[1] - ant[1]); if (d < 1) return;
+    var dt = d / vel;
+    tl.to(giro, { scaleX: q[0] < ant[0] - 2 ? -1 : 1, duration: .2 }, t);
+    tl.to(el, { x: q[0], y: q[1], duration: dt, ease: "none" }, t);
+    t += dt; total += dt; ant = q;
+  });
+  var paso = vel > 250 ? .14 : .22;
+  if (total > 0) tl.to(cuerpo, { y: -el._alto * .06, duration: paso, yoyo: true, repeat: Math.max(1, Math.round(total / paso)) | 1, ease: "sine.inOut" }, en || 0);
+  return total;
+}
+// por el sendero del mapa, desde el punto más cercano hasta el paso "hasta" y después a "fin"
+function caminar(el, hasta, fin, rapido, tl, en) {
+  var p = pos(el), desde = 0, mejor = Infinity, puntos = [];
+  SENDERO.forEach(function (q, i) { var d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < mejor) { mejor = d; desde = i; } });
+  if (desde <= hasta) for (var i = desde; i <= hasta; i++) puntos.push(SENDERO[i]);
+  else for (var j = desde; j >= hasta; j--) puntos.push(SENDERO[j]);
+  if (fin) puntos.push(fin);
+  return recorrer(el, puntos, rapido ? 320 : 150, tl, en);
+}
+function dibujo(el, src) { el.querySelector("img").src = "img/" + src; }
+function ocultar(el, dur) { gsap.to(el, { autoAlpha: 0, duration: dur === undefined ? 1 : dur }); }
+function mostrar(el, dur) { gsap.to(el, { autoAlpha: 1, duration: dur === undefined ? .6 : dur }); }
+
+/* ---------- efectos ---------- */
+function golpear() {
+  var c = P.lobo.querySelector(".cuerpo");
+  gsap.fromTo(c, { x: 0 }, { x: 8, duration: .12, yoyo: true, repeat: 5 });
+}
+function chispas(x, y, color, cuantas) {
+  document.querySelectorAll(".chispa").forEach(function (c, i) {
+    if (i >= cuantas) return;
+    c.style.background = color;
+    gsap.fromTo(c, { x: x + (i * 23) % 80 - 40, y: y - (i * 17) % 60, scale: .6, opacity: 1 },
+      { x: "+=" + ((i * 37) % 160 - 80), y: "-=" + (60 + (i * 29) % 120), scale: 1.6, opacity: 0, duration: 2 + (i % 4) * .4, delay: (i % 6) * .15, ease: "power1.out" });
+  });
+}
+function roncar(si) {
+  document.querySelectorAll(".zeta").forEach(function (z, i) {
+    gsap.killTweensOf(z);
+    if (!si) { gsap.set(z, { opacity: 0 }); return; }
+    gsap.fromTo(z, { x: LUGAR.siesta[0] + 40, y: LUGAR.siesta[1] - 150, opacity: 0, scale: .6 },
+      { x: "+=70", y: "-=110", opacity: 1, scale: 1.3, duration: 2.6, repeat: -1, delay: i * .9, ease: "sine.out", keyframes: { opacity: [0, 1, 0] } });
+  });
+}
+function noche(si, dur) {
+  gsap.to("#noche", { opacity: si ? .78 : 0, duration: dur });
+  gsap.to(".estrella, #luna", { opacity: si ? 1 : 0, duration: dur });
+  gsap.to("#fondo", { filter: "blur(24px) brightness(" + (si ? .3 : .85) + ")", duration: dur });
+}
+function esconder(i, tl, en) {
+  recorrer(CA[i], [ESCONDITE[i]], 700, tl, en);
+  tl.to(CA[i], { autoAlpha: 0, scale: .7, duration: .5 }, (en || 0) + .9);
+}
+function salir(i, tl, en) {
+  tl.set(CA[i], { x: ESCONDITE[i][0], y: ESCONDITE[i][1], scale: .7 }, en);
+  tl.to(CA[i], { autoAlpha: 1, scale: 1, duration: .5 }, en);
+  recorrer(CA[i], [ALFOMBRA[i]], 600, tl, en + .5);
+}
+
+/* ---------- escenas ----------
+   cam: lugar del mapa; arranque(tl): lo que pasa al llegar; efectos: a medida que
+   avanza la narración (en = fracción del audio) */
+var ESCENAS = [null,
+  { cam: "todo" },
+  { cam: "casa",
+    efectos: [{ en: .55, hacer: function (tl) { caminar(P.mama, PASO.fin, null, false, tl); tl.to(P.mama, { autoAlpha: 0, duration: 2 }, 16); } },
+              { en: .9, hacer: function (tl) { C.forEach(function (c, i) { recorrer(c, [LUGAR.puerta], 160, tl, i * .3); tl.to(c, { autoAlpha: 0, duration: .5 }, i * .3 + 1.4); }); } }] },
+  { cam: "casa",
+    arranque: function (tl) {
+      C.forEach(function (c) { gsap.set(c, { autoAlpha: 0 }); }); gsap.set(P.mama, { autoAlpha: 0 });
+      gsap.set(P.lobo, { autoAlpha: 1, x: SENDERO[6][0], y: SENDERO[6][1] }); caminar(P.lobo, PASO.casa, LUGAR.puerta, false, tl);
+    },
+    efectos: [{ en: .05, hacer: golpear }] },
+  { cam: "almacen",
+    arranque: function (tl) { caminar(P.lobo, PASO.almacen, LUGAR.almacen, false, tl); },
+    efectos: [{ en: .4, hacer: function () { chispas(LUGAR.almacen[0] + 50, LUGAR.almacen[1] - 150, "#f2b33d", 16); } }] },
+  { cam: "casa",
+    arranque: function (tl) { caminar(P.lobo, PASO.casa, LUGAR.ventana, false, tl); },
+    efectos: [{ en: .05, hacer: golpear }] },
+  { cam: "molino",
+    arranque: function (tl) { caminar(P.lobo, PASO.molino, LUGAR.molino, false, tl); },
+    efectos: [{ en: .25, hacer: function () { chispas(LUGAR.molino[0], LUGAR.molino[1] - 60, "#ffffff", 24); } }] },
+  { cam: "casa",
+    arranque: function (tl) { caminar(P.lobo, PASO.casa, LUGAR.puerta, false, tl); },
+    efectos: [{ en: .3, hacer: function (tl) { ocultar(P.lobo); verAdentro(true); recorrer(P.loboAdentro, [[900, 1420]], 260, tl, 2.6); } },
+              // cada uno a su escondite, cuando la narración lo va nombrando
+              { en: .6, hacer: function (tl) { esconder(0, tl); } }, { en: .66, hacer: function (tl) { esconder(1, tl); } },
+              { en: .71, hacer: function (tl) { esconder(2, tl); } }, { en: .76, hacer: function (tl) { esconder(3, tl); } },
+              { en: .81, hacer: function (tl) { esconder(4, tl); } }, { en: .86, hacer: function (tl) { esconder(5, tl); } },
+              { en: .93, hacer: function (tl) { esconder(6, tl); } }] },
+  { cam: "casa",
+    arranque: function (tl) { recorrer(P.loboAdentro, [[1800, 1420], [2300, 1380], [1400, 1460], [700, 1420]], 300, tl); },
+    efectos: [{ en: .4, hacer: function (tl) {
+                recorrer(P.loboAdentro, [[-350, 1420]], 400, tl);
+                tl.add(function () { verAdentro(false); }, 2.2);
+                tl.set(P.lobo, { autoAlpha: 1, x: LUGAR.puerta[0], y: LUGAR.puerta[1] }, 2.2);
+                tl.add(function () { irA("arbol", 6); }, 3);
+                caminar(P.lobo, PASO.arbol, LUGAR.siesta, true, tl, 3);
+              } },
+              { en: .85, hacer: function () { dibujo(P.lobo, "lobo-duerme.webp"); gsap.set(P.lobo.querySelector(".giro"), { scaleX: 1 }); roncar(true); } }] },
+  { cam: "casa",
+    arranque: function (tl) { verAdentro(true); recorrer(P.mamaAdentro, [[1100, 1430]], 300, tl, 2.5); },
+    efectos: [{ en: .4, hacer: function (tl) { [0, 1, 2, 3, 4, 5].forEach(function (i) { salir(i, tl, i * 1.6); }); } },
+              { en: .75, hacer: function (tl) { salir(6, tl, 0); } }] },
+  { cam: "arbol",
+    arranque: function (tl) {
+      verAdentro(false);
+      gsap.set(P.mama, { autoAlpha: 1, x: 620, y: 2480 });
+      C.forEach(function (c, i) { gsap.set(c, { autoAlpha: 1, x: 470 + i * 40, y: 2500 + (i % 2) * 30 }); });
+    },
+    efectos: [{ en: .25, hacer: function (tl) {   // en puntitas de pie, despacito
+                recorrer(P.mama, [[820, 2480]], 45, tl);
+                C.forEach(function (c, i) { recorrer(c, [[680 + i * 30, 2510 + (i % 2) * 30]], 45, tl, i * .2); });
+              } },
+              { en: .55, hacer: function (tl) {   // ¡BUUU!
+                roncar(false); dibujo(P.lobo, "lobo-mojado.webp");
+                tl.to(P.lobo, { y: "-=220", duration: .5, ease: "power2.out" });
+                tl.to(P.lobo, { x: LUGAR.arroyo[0], y: LUGAR.arroyo[1], duration: .6, ease: "power2.in" });
+                tl.add(function () { chispas(LUGAR.arroyo[0], LUGAR.arroyo[1] - 20, "#9fd3f0", 24); });
+                tl.to(P.lobo, { x: -300, y: 2150, duration: 4, ease: "power1.in" }, "+=.6");
+              } }] },
+  { cam: "casa",
+    arranque: function () {
+      gsap.set([P.lobo, P.mama].concat(C), { autoAlpha: 0 });
+      noche(true, 5); gsap.to("#luz", { opacity: 1, duration: 4, delay: 2 });
+    },
+    efectos: [{ en: .2, hacer: function () { camara(768, 1376, 2752, 26); } }] }
+];
+function camaraDe(e, dur) { if (e.cam === "todo") camara(768, 1376, 2752, dur); else irA(e.cam, dur); }
+// Saltar a una escena: se arma todo como quedó al final de las anteriores
+function irDirecto(n) {
+  gsap.globalTimeline.getChildren(false, true, true).forEach(function (t) { if (!t.vars.repeat) t.kill(); });
+  armar();
+  for (var i = 1; i < n; i++) {
+    var tl = gsap.timeline({ paused: true }), e = ESCENAS[i];
+    if (e.arranque) e.arranque(tl);
+    (e.efectos || []).forEach(function (f) { f.hacer(tl); });
+    tl.progress(1).kill();
+    gsap.globalTimeline.getChildren(false, true, false).forEach(function (t) { if (!t.vars.repeat) t.progress(1); });
+  }
+  roncar(n === 9 || n === 10);
+  noche(n === 11, 0);
+  camaraDe(ESCENAS[n], 0);
+  verAdentro(n === 8 || n === 9, 0);
+}
+
+/* ---------- narración ---------- */
+var textos = {}, audios = {}, audio = new Audio(), actual = 0, pausado = true, token = 0, narrando = 0;
+var synth = window.speechSynthesis, habla = { inicio: 0, dur: 1, pausaDesde: 0 };
+function leerTextos(t) {
+  var p = {}, a = null;
+  t.split(/\r?\n/).forEach(function (l) {
+    var m = l.match(/^==\s*(\d+)\s*$/);
+    if (m) { a = +m[1]; p[a] = []; return; }
+    if (a === null || /^#/.test(l) || !l.trim()) return;
+    p[a].push(l.trim());
+  });
+  return p;
+}
+var listo = Promise.all([
+  fetch("../textos/siete-cabritos.txt").then(function (r) { return r.text(); }).then(function (t) { textos = leerTextos(t); }),
+  fetch("../audio/siete-cabritos/indice.json").then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) { audios = j.paginas || {}; }).catch(function () {})
+]);
+function mostrarTexto(n) {
+  $("#texto").innerHTML = (textos[n] || []).map(function (t) { return "<p>" + t.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</p>"; }).join("");
+}
+function progreso() {
+  if (narrando !== actual) return 0;
+  if (audios[actual]) return audio.duration ? audio.currentTime / audio.duration : 0;
+  return Math.min(1, ((pausado ? habla.pausaDesde : performance.now()) - habla.inicio) / habla.dur);
+}
+function vozNavegador() {
+  var es = synth ? synth.getVoices().filter(function (v) { return /^es/i.test(v.lang); }) : [];
+  return es.filter(function (v) { return /paulina|sabina|dalia|elena|helena|laura|valentina|google español/i.test(v.name); })[0] || es[0] || null;
+}
+function narrar(n, t) {
+  narrando = n;
+  return new Promise(function (fin) {
+    if (audios[n]) {
+      audio.src = "../audio/siete-cabritos/p" + (n < 10 ? "0" : "") + n + ".mp3";
+      audio.onended = function () { fin(); };
+      audio.onerror = function () { delete audios[n]; narrar(n, t).then(fin); };
+      var p = audio.play(); if (p && p.catch) p.catch(function () {});
+      return;
+    }
+    var frases = textos[n] || [], v = vozNavegador(), quedan = frases.length;
+    habla.inicio = performance.now(); habla.dur = Math.max(2000, frases.join(" ").length * 75);
+    if (!synth || !quedan) { setTimeout(fin, habla.dur); return; }
+    frases.forEach(function (f) {
+      var u = new SpeechSynthesisUtterance(f);
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "es-419";
+      u.rate = .85;
+      u.onend = u.onerror = function () { if (--quedan <= 0 && t === token) fin(); };
+      synth.speak(u);
+    });
+  });
+}
+function esperar(ms, t) {
+  return new Promise(function (r) {
+    (function mirar() { if (t !== token) return; if (pausado || ms > 0) { if (!pausado) ms -= 100; setTimeout(mirar, 100); } else r(); })();
+  });
+}
+function callar() { narrando = 0; audio.onended = audio.onerror = null; audio.pause(); if (synth) synth.cancel(); }
+var ULTIMA = ESCENAS.length - 1;
+function escena(n) {
+  var t = ++token, e = ESCENAS[n];
+  actual = n;
+  callar();
+  camaraDe(e, n === 1 ? 0 : 4.5);
+  mostrarTexto(n);
+  var tl = gsap.timeline();
+  if (e.arranque) e.arranque(tl);
+  var pendientes = (e.efectos || []).slice();
+  (function efectos() {
+    if (t !== token) return;
+    var p = progreso();
+    while (pendientes.length && pendientes[0].en <= p) pendientes.shift().hacer(gsap.timeline());
+    requestAnimationFrame(efectos);
+  })();
+  return esperar(n === 1 ? 1500 : 4000, t).then(function () { return t === token && narrar(n, t); })
+    .then(function () { if (t !== token) return; pendientes.forEach(function (f) { f.hacer(gsap.timeline()); }); pendientes = []; })
+    .then(function () { return esperar(2500, t); })
+    .then(function () { if (t !== token) return; if (n < ULTIMA) escena(n + 1); else ponerPausa(true, true); });
+}
+function ponerPausa(si, terminado) {
+  pausado = si;
+  $("#pausa").innerHTML = si ? '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>' : '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  $("#pausa").setAttribute("aria-label", si ? "Seguir" : "Pausar");
+  $("#pausa").dataset.terminado = terminado ? "1" : "";
+  if (si) { habla.pausaDesde = performance.now(); audio.pause(); if (synth) synth.pause(); }
+  else { habla.inicio += performance.now() - (habla.pausaDesde || performance.now()); if (audios[actual] && audio.src && audio.currentTime) audio.play(); if (synth) synth.resume(); }
+}
+function saltar(n) {
+  n = Math.max(1, Math.min(ULTIMA, n));
+  token++; callar();
+  irDirecto(n);
+  ponerPausa(false);
+  escena(n);
+}
+
+$("#contar").addEventListener("click", function () {
+  audio.play().catch(function () {}); audio.pause();
+  $("#inicio").classList.add("fuera");
+  ponerPausa(false);
+  listo.then(function () { escena(1); });
+});
+$("#pausa").addEventListener("click", function () {
+  if (!actual) return;
+  if (this.dataset.terminado) { saltar(1); return; }
+  ponerPausa(!pausado);
+});
+$("#atras").addEventListener("click", function () { if (actual) saltar(actual - 1); });
+$("#adelante").addEventListener("click", function () { if (actual) saltar(actual + 1); });
+$("#verTexto").addEventListener("click", function () {
+  var si = document.body.classList.toggle("con-texto");
+  this.setAttribute("aria-label", si ? "Ocultar el texto" : "Mostrar el texto"); this.title = this.getAttribute("aria-label");
+});
+
+armar();
+camara(768, 1376, 2752, 0);
+ponerPausa(true);
+})();
+</script>
+</body>
+</html>

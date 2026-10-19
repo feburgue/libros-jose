@@ -1,0 +1,13 @@
+{
+ "motor": "gemini",
+ "modelo": "gemini-2.5-flash-preview-tts",
+ "voz": "Sulafat",
+ "paginas": {
+  "1": "54246f931deb",
+  "2": "657156577b8a",
+  "3": "789f015e037f",
+  "4": "746bac89bb07",
+  "5": "9e71dcd0c73f",
+  "6": "80705cf3d93d"
+ }
+}

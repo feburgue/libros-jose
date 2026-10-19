@@ -35,7 +35,21 @@ const GEMINI = {
           'con acento rioplatense. Hacé una pausa tranquila entre cada párrafo:'
 };
 class SinCupo extends Error {}
+// A veces Gemini "se traba" y devuelve minutos de audio (repite o deja silencios largos)
+// para un texto de un minuto. Normal: unos 0,1 segundos por letra. Si se va muy lejos,
+// se pide de nuevo; tras 3 intentos queda el más razonable.
 async function grabarGemini(texto){
+  let mejor = null;
+  for (let intento = 1; intento <= 3; intento++){
+    const audio = await pedirGemini(texto);
+    const ritmo = audio.segundos / Math.max(texto.length, 1);
+    if (ritmo >= 0.04 && ritmo <= 0.2 || audio.segundos < 6) return audio.mp3;
+    console.log(`  audio raro (${Math.round(audio.segundos)} s para ${texto.length} letras), intento ${intento} de 3`);
+    if (!mejor || Math.abs(ritmo - 0.1) < Math.abs(mejor.ritmo - 0.1)) mejor = { ...audio, ritmo };
+  }
+  return mejor.mp3;
+}
+async function pedirGemini(texto){
   for (let intento = 1; ; intento++){
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI.modelo}:generateContent`, {
       method: 'POST',
@@ -77,7 +91,7 @@ async function aMp3(buf, tipo){
   const enc = new Mp3Encoder(1, rate, 48), partes = [];
   for (let i = 0; i < muestras.length; i += 1152) partes.push(Buffer.from(enc.encodeBuffer(muestras.subarray(i, i + 1152))));
   partes.push(Buffer.from(enc.flush()));
-  return Buffer.concat(partes);
+  return { mp3: Buffer.concat(partes), segundos: muestras.length / rate };
 }
 
 /* ---------- Azure ---------- */
