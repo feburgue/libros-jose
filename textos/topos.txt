@@ -2,7 +2,7 @@
 # Una sección por frase. Se pueden corregir a mano y volver a grabar.
 
 == 1
-¡Vamos a jugar! ¡Pegale a los topos con el martillo!
+¡Vamos a jugar! ¡Tocale la cabecita a los topos!
 
 == 2
 ¡Muy bien!

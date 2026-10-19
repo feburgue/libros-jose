@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#2a1a0f">
 <link rel="shortcut icon" type="image/png" href="../favicon.ico">
-<!-- Jardín, topos, conejito y martillo pintados con Nano Banana (Gemini) a partir de
+<!-- Jardín, topos, conejito y mano pintados con Nano Banana (Gemini) a partir de
      textos de Claude; animación con GSAP 3.12.5 (cerditos/lib). -->
 <script src="../cerditos/lib/gsap.min.js"></script>
 <script src="../lib/despierto.js"></script>
@@ -23,7 +23,8 @@
   .ventana{position:absolute; overflow:hidden; pointer-events:none}
   .ventana img{position:absolute; left:0; bottom:0; width:100%; will-change:transform}
   .dorado{filter:sepia(1) saturate(3.5) hue-rotate(-12deg) brightness(1.08)}
-  #martillo{position:fixed; left:0; top:0; width:120px; pointer-events:none; opacity:0; transform-origin:85% 85%; z-index:5}
+  #mano{position:fixed; left:0; top:0; width:120px; pointer-events:none; opacity:0; transform-origin:45% 80%; z-index:5;
+    filter:drop-shadow(0 6px 8px rgba(60,40,20,.25))}
   .estrellita{position:fixed; font-size:34px; pointer-events:none; z-index:4}
   .papelito{position:fixed; width:12px; height:18px; border-radius:3px; pointer-events:none; z-index:4}
   #puntos{position:fixed; top:max(10px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:3;
@@ -48,7 +49,7 @@
 </head>
 <body>
 <div id="tablero"></div>
-<img id="martillo" src="img/martillo.webp" alt="">
+<img id="mano" src="img/mano.webp" alt="">
 <div id="puntos" aria-live="polite"><span class="e">⭐</span><span id="n">0</span></div>
 <div id="barra">
   <a href="../index.html" aria-label="Volver a los libros" title="Todos los libros"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
@@ -137,7 +138,8 @@ function tono(f0, f1, dur, tipo, vol, cuando) {
 var sfx = {
   pop: function () { tono(300, 700, .12, "sine", .15); },
   boing: function () { tono(180, 520, .35, "triangle", .3); tono(520, 260, .25, "sine", .12, .2); },
-  pum: function () { tono(140, 60, .15, "sine", .3); },
+  // palmadita: un golpecito suave y corto
+  pum: function () { tono(220, 90, .09, "sine", .28); tono(1400, 600, .04, "triangle", .05); },
   risita: function () { [0, .11, .22].forEach(function (d, k) { tono(900 - k * 80, 1100 - k * 80, .08, "square", .05, d); }); },
   festejo: function () { [523, 659, 784, 1046].forEach(function (f, k) { tono(f, f, .18, "triangle", .15, k * .12); }); }
 };
@@ -256,16 +258,20 @@ function festejo() {
   }
 }
 
-/* ---------- el martillo: aparece donde toca y hace "¡pum!" ---------- */
-var martillo = $("#martillo");
+/* ---------- la mano: baja desde arriba y da una palmadita donde toca ---------- */
+var mano = $("#mano");
 function tocar(ev) {
   if (!jugando) return;
-  var x = ev.clientX, y = ev.clientY, mw = Math.min(140, Math.max(90, innerWidth * .16));
-  martillo.style.width = mw + "px";
-  gsap.killTweensOf(martillo);
-  gsap.set(martillo, { x: x - mw * .3, y: y - mw * .95, rotation: -35, opacity: 1 });
-  gsap.to(martillo, { rotation: 15, duration: .12, ease: "power2.in" });
-  gsap.to(martillo, { opacity: 0, duration: .3, delay: .35 });
+  var x = ev.clientX, y = ev.clientY, mw = Math.min(150, Math.max(95, innerWidth * .17));
+  mano.style.width = mw + "px";
+  // la palma (45% del ancho, 75% del alto del dibujo) queda justo sobre el dedo
+  var px = x - mw * .45, py = y - mw * 1.05 * .75;
+  gsap.killTweensOf(mano);
+  gsap.timeline()
+    .set(mano, { x: px, y: py - mw * .55, scale: 1.12, rotation: -8, opacity: 0 })
+    .to(mano, { y: py, scale: 1, rotation: 0, opacity: 1, duration: .12, ease: "power2.in" })
+    .to(mano, { scaleY: .9, scaleX: 1.05, duration: .06, yoyo: true, repeat: 1 })
+    .to(mano, { y: py - mw * .35, opacity: 0, rotation: 6, duration: .28, ease: "power1.out" }, "+=.08");
   // ¿le pegó a alguno? (toda la casilla cuenta, para que sea fácil con dedos chiquitos)
   var p = POZOS.filter(function (q) { var z = q.zona; return q.arriba && !q.golpeado && x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h; })[0];
   if (p) golpear(p, x, y); else sfx.pum();
