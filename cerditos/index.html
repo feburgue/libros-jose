@@ -153,20 +153,23 @@ function armar() {
 
 /* ---------- la cámara ----------
    cam = punto del mapa que va al centro y cuánto mapa entra de alto */
-var cam = { x: 768, y: 1376, alto: 2752 };
+// cam = punto del centro, cuánto mapa entra de alto y, como mínimo, de ancho
+// (en un celular vertical manda el ancho: así entran el lobo y la casa)
+var cam = { x: 768, y: 1376, alto: 2752, ancho: 0 };
 function aplicarCamara() {
   var vw = vista.clientWidth, vh = vista.clientHeight;
-  var s = vh / cam.alto;
+  var s = Math.min(vh / cam.alto, cam.ancho ? vw / cam.ancho : Infinity);
   var x = vw / 2 - cam.x * s, y = vh / 2 - cam.y * s;
   // si el mapa cubre la pantalla, que no se vea el borde
   if (1536 * s >= vw) x = Math.min(0, Math.max(vw - 1536 * s, x)); else x = (vw - 1536 * s) / 2;
   if (2752 * s >= vh) y = Math.min(0, Math.max(vh - 2752 * s, y));
   mundo.style.transform = "translate(" + x + "px," + y + "px) scale(" + s + ")";
 }
-function camara(x, y, alto, dur) {
+function camara(x, y, alto, dur, ancho) {
+  ancho = ancho || 0;
   gsap.killTweensOf(cam);
-  if (!dur) { cam.x = x; cam.y = y; cam.alto = alto; aplicarCamara(); return; }
-  gsap.to(cam, { x: x, y: y, alto: alto, duration: dur, ease: "sine.inOut", onUpdate: aplicarCamara });
+  if (!dur) { cam.x = x; cam.y = y; cam.alto = alto; cam.ancho = ancho; aplicarCamara(); return; }
+  gsap.to(cam, { x: x, y: y, alto: alto, ancho: ancho, duration: dur, ease: "sine.inOut", onUpdate: aplicarCamara });
 }
 window.addEventListener("resize", aplicarCamara);
 
@@ -198,7 +201,9 @@ function caminar(el, hasta, fin, rapido, tl, en) {
 function cambiarDibujo(el, src) { el.querySelector("img").src = "img/" + src; }
 
 /* ---------- efectos ---------- */
-function soplar(el, si) { cambiarDibujo(el, si ? "lobo-sopla.webp" : "lobo-camina.webp"); }
+// las casitas siempre están a la derecha del lobo: sopla (y descansa) mirando para ese lado
+function mirarDerecha(el) { gsap.set(el.querySelector(".giro"), { scaleX: 1 }); }
+function soplar(el, si) { mirarDerecha(el); cambiarDibujo(el, si ? "lobo-sopla.webp" : "lobo-camina.webp"); }
 function volarPaja() {
   gsap.to(P.paja, { x: "+=260", y: "-=320", rotation: 30, scale: .35, autoAlpha: 0, duration: 3.2, ease: "power1.in", transformOrigin: "50% 100%" });
   gsap.to(P.pajaSuelta, { autoAlpha: 1, duration: 1.5, delay: 1 });
@@ -228,27 +233,27 @@ var LADO = { paja: [850, 1060], palos: [905, 1795], ladrillos: [840, 2420], puer
 function entrar(el) { gsap.to(el, { autoAlpha: 0, duration: 1 }); }
 var ESCENAS = [null,
   { cam: [768, 1376, 2752], cielo: "dia" },
-  { cam: [640, 660, 620], cielo: "dia",
+  { cam: [640, 660, 620, 520], cielo: "dia",
     efectos: [{ en: .7, hacer: function (tl) { caminar(P.ch1, 3, null, false, tl); caminar(P.ch2, 3, null, false, tl, .5); caminar(P.ch3, 3, null, false, tl, 1); } }] },
-  { cam: [840, 990, 620], cielo: "dia",
+  { cam: [880, 990, 620, 620], cielo: "dia",
     arranque: function (tl) { caminar(P.ch1, PASO.paja, LADO.paja, false, tl); caminar(P.ch2, PASO.paja - 1, null, false, tl); caminar(P.ch3, PASO.paja - 2, null, false, tl); },
     efectos: [{ en: .6, hacer: function (tl) { caminar(P.ch2, 12, null, false, tl); caminar(P.ch3, 12, null, false, tl, .6); } }] },
-  { cam: [960, 1690, 640], cielo: "dia",
+  { cam: [980, 1690, 640, 640], cielo: "dia",
     arranque: function (tl) { caminar(P.ch2, PASO.palos, LADO.palos, false, tl); caminar(P.ch3, PASO.palos + 1, null, false, tl, .5); },
     efectos: [{ en: .62, hacer: function (tl) { caminar(P.ch3, 26, null, false, tl); } }] },
-  { cam: [940, 2320, 660], cielo: "dia",
+  { cam: [960, 2320, 660, 600], cielo: "dia",
     arranque: function (tl) { caminar(P.ch3, PASO.ladrillos, LADO.ladrillos, false, tl); } },
-  { cam: [840, 990, 620], cielo: "tarde",
+  { cam: [880, 990, 620, 640], cielo: "tarde",
     arranque: function (tl) { gsap.set(P.lobo, { autoAlpha: 1 }); caminar(P.lobo, PASO.paja, LADO.loboPaja, false, tl); },
     efectos: [{ en: .5, hacer: function () { soplar(P.lobo, true); } }, { en: .62, hacer: volarPaja },
               { en: .78, hacer: function () { soplar(P.lobo, false); } },
               { en: .84, hacer: function (tl) { caminar(P.ch1, PASO.palos, [985, 1805], true, tl); } }] },
-  { cam: [960, 1690, 640], cielo: "tarde",
+  { cam: [980, 1690, 640, 660], cielo: "tarde",
     arranque: function (tl) { caminar(P.lobo, PASO.palos, LADO.loboPalos, false, tl); },
     efectos: [{ en: .42, hacer: function () { soplar(P.lobo, true); } }, { en: .52, hacer: caerPalos },
               { en: .7, hacer: function () { soplar(P.lobo, false); } },
               { en: .76, hacer: function (tl) { caminar(P.ch1, PASO.ladrillos, LADO.puerta, true, tl); caminar(P.ch2, PASO.ladrillos, LADO.puerta, true, tl, .3); } }] },
-  { cam: [900, 2330, 660], cielo: "tarde",
+  { cam: [880, 2330, 660, 680], cielo: "tarde",
     arranque: function (tl) {
       [P.ch1, P.ch2, P.ch3].forEach(entrar); gsap.to("#ventana", { opacity: 1, duration: 1.5, delay: .8 });
       caminar(P.lobo, PASO.ladrillos - 1, LADO.loboLadrillos, false, tl);
@@ -256,11 +261,11 @@ var ESCENAS = [null,
     efectos: [{ en: .48, hacer: function () { soplar(P.lobo, true); } },
               { en: .55, hacer: function () { gsap.fromTo(P.lobo.querySelector(".cuerpo"), { x: -3 }, { x: 3, duration: .12, yoyo: true, repeat: 15 }); } },
               { en: .8, hacer: function () { soplar(P.lobo, false); } },
-              { en: .87, hacer: function () { cambiarDibujo(P.lobo, "lobo-cansado.webp"); } }] },
-  { cam: [900, 2330, 660], cielo: "tarde",
+              { en: .87, hacer: function () { mirarDerecha(P.lobo); cambiarDibujo(P.lobo, "lobo-cansado.webp"); } }] },
+  { cam: [880, 2330, 660, 680], cielo: "tarde",
     efectos: [{ en: .38, hacer: function () { cambiarDibujo(P.lobo, "lobo-sentado.webp"); } },
               { en: .72, hacer: function (tl) { cambiarDibujo(P.lobo, "lobo-camina.webp"); caminar(P.lobo, PASO.bosque, null, false, tl); gsap.to(P.lobo, { autoAlpha: 0, duration: 2, delay: 6 }); } }] },
-  { cam: [900, 2330, 660], cielo: "noche",
+  { cam: [880, 2330, 660, 680], cielo: "noche",
     arranque: function () { gsap.to("#luz", { opacity: 1, duration: 4 }); gsap.set(P.lobo, { autoAlpha: 0 }); },
     efectos: [{ en: .15, hacer: function () { camara(768, 1376, 2752, 26); } }] }
 ];
@@ -277,7 +282,7 @@ function irDirecto(n) {
   tl.progress(1).kill();
   gsap.globalTimeline.getChildren(false, true, false).forEach(function (t) { if (!t.vars.repeat) t.progress(1); });
   cielo(ESCENAS[n].cielo, 0);
-  var c = ESCENAS[n].cam; camara(c[0], c[1], c[2], 0);
+  var c = ESCENAS[n].cam; camara(c[0], c[1], c[2], 0, c[3]);
 }
 
 /* ---------- narración ---------- */
@@ -346,7 +351,7 @@ function escena(n) {
   var t = ++token, e = ESCENAS[n];
   actual = n;
   callar();
-  var c = e.cam; camara(c[0], c[1], c[2], n === 1 ? 0 : 4.5);
+  var c = e.cam; camara(c[0], c[1], c[2], n === 1 ? 0 : 4.5, c[3]);
   cielo(e.cielo, 5);
   mostrarTexto(n);
   var tl = gsap.timeline();

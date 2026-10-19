@@ -87,7 +87,8 @@ var LUGAR = { puerta: [640, 690], ventana: [735, 690], almacen: [880, 1050], mol
 // Interior (2752 x 1536): de dónde salen y adónde se esconde cada cabrito
 var ESCONDITE = [[500, 1290], [750, 800], [1190, 1015], [1560, 995], [1720, 960], [2120, 1120], [2530, 960]];
 var ALFOMBRA = [[1020, 1330], [1180, 1400], [1330, 1310], [1480, 1410], [1630, 1320], [1780, 1400], [1400, 1460]];
-var CAMARA = { casa: [650, 640, 620], almacen: [880, 1000, 640], molino: [990, 1720, 660], arbol: [940, 2400, 680] };
+// [x, y, alto, ancho mínimo]: en un celular vertical manda el ancho, para que entren todos
+var CAMARA = { casa: [660, 640, 620, 560], almacen: [880, 1000, 640, 520], molino: [990, 1720, 660, 560], arbol: [800, 2400, 680, 720] };
 
 /* ---------- piezas ---------- */
 function pieza(mundo, id, src, alto, x, y) {
@@ -144,9 +145,9 @@ function armar() {
 }
 
 /* ---------- cámaras: una para el mapa y otra para adentro de la casa ---------- */
-var cam = { x: 768, y: 1376, alto: 2752 };
+var cam = { x: 768, y: 1376, alto: 2752, ancho: 0 };
 function aplicarCamara() {
-  var v = $("#vistaMapa"), vw = v.clientWidth, vh = v.clientHeight, s = vh / cam.alto;
+  var v = $("#vistaMapa"), vw = v.clientWidth, vh = v.clientHeight, s = Math.min(vh / cam.alto, cam.ancho ? vw / cam.ancho : Infinity);
   var x = vw / 2 - cam.x * s, y = vh / 2 - cam.y * s;
   if (1536 * s >= vw) x = Math.min(0, Math.max(vw - 1536 * s, x)); else x = (vw - 1536 * s) / 2;
   if (2752 * s >= vh) y = Math.min(0, Math.max(vh - 2752 * s, y));
@@ -155,12 +156,13 @@ function aplicarCamara() {
   var a = $("#vistaAdentro"), aw = a.clientWidth, ah = a.clientHeight, sa = Math.max(aw / 2752, ah / 1536);
   adentro.style.transform = "translate(" + (aw - 2752 * sa) / 2 + "px," + (ah - 1536 * sa) / 2 + "px) scale(" + sa + ")";
 }
-function camara(x, y, alto, dur) {
+function camara(x, y, alto, dur, ancho) {
+  ancho = ancho || 0;
   gsap.killTweensOf(cam);
-  if (!dur) { cam.x = x; cam.y = y; cam.alto = alto; aplicarCamara(); return; }
-  gsap.to(cam, { x: x, y: y, alto: alto, duration: dur, ease: "sine.inOut", onUpdate: aplicarCamara });
+  if (!dur) { cam.x = x; cam.y = y; cam.alto = alto; cam.ancho = ancho; aplicarCamara(); return; }
+  gsap.to(cam, { x: x, y: y, alto: alto, ancho: ancho, duration: dur, ease: "sine.inOut", onUpdate: aplicarCamara });
 }
-function irA(lugar, dur) { var c = CAMARA[lugar]; camara(c[0], c[1], c[2], dur); }
+function irA(lugar, dur) { var c = CAMARA[lugar]; camara(c[0], c[1], c[2], dur, c[3]); }
 // entrar a la casa: la cámara se acerca a la puerta y aparece la habitación
 function verAdentro(si, dur) {
   if (dur === undefined) dur = 1.6;
@@ -289,7 +291,7 @@ var ESCENAS = [null,
                 C.forEach(function (c, i) { recorrer(c, [[680 + i * 30, 2510 + (i % 2) * 30]], 45, tl, i * .2); });
               } },
               { en: .55, hacer: function (tl) {   // ¡BUUU!
-                roncar(false); dibujo(P.lobo, "lobo-mojado.webp");
+                roncar(false); dibujo(P.lobo, "lobo-mojado.webp"); gsap.set(P.lobo.querySelector(".giro"), { scaleX: 1 });   // ya está dibujado corriendo hacia la izquierda
                 tl.to(P.lobo, { y: "-=220", duration: .5, ease: "power2.out" });
                 tl.to(P.lobo, { x: LUGAR.arroyo[0], y: LUGAR.arroyo[1], duration: .6, ease: "power2.in" });
                 tl.add(function () { chispas(LUGAR.arroyo[0], LUGAR.arroyo[1] - 20, "#9fd3f0", 24); });
