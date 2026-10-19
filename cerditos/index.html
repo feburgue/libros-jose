@@ -6,81 +6,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2a1a0f">
 <link rel="shortcut icon" type="image/png" href="../favicon.ico">
+<!-- Mapa y personajes pintados con Nano Banana (Gemini) a partir de textos de
+     Claude; animación con GSAP 3.12.5 (cerditos/lib, licencia estándar de GSAP). -->
+<script src="lib/gsap.min.js"></script>
 <style>
   :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
-  html,body{margin:0; height:100%; background:#1b1410; overflow:hidden; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  html,body{margin:0; height:100%; overflow:hidden; background:#5d7d4a; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none}
-  #escena{position:fixed; inset:0; width:100%; height:100%; display:block}
-  /* la cámara se desliza despacio por el sendero */
-  #mundo, #lomas{transition:transform 4s cubic-bezier(.45,0,.25,1)}
-  .cielo{transition:opacity 5s ease}
-  #sol, #luna{transition:transform 6s ease, opacity 6s ease}
-  .estrella{opacity:0; transition:opacity 4s ease}
-  .noche .estrella{opacity:.9; animation:titilar 4s ease-in-out infinite}
-  .noche .estrella:nth-child(3n){animation-delay:1.3s} .noche .estrella:nth-child(3n+1){animation-delay:2.6s}
-  @keyframes titilar{50%{opacity:.4}}
-  .nube{animation:nube linear infinite}
-  @keyframes nube{from{transform:translateX(-260px)} to{transform:translateX(1060px)}}
-  .pasto{transform-box:fill-box; transform-origin:50% 100%; animation:pasto 5s ease-in-out infinite}
-  @keyframes pasto{50%{transform:rotate(4deg)}}
-  .humo{animation:humo 6s ease-out infinite; opacity:0}
-  @keyframes humo{0%{transform:translate(0,0) scale(.5); opacity:0} 20%{opacity:.6} 100%{transform:translate(18px,-70px) scale(1.6); opacity:0}}
-  /* personajes: caminan despacito y se balancean al caminar */
-  .bicho{transition:transform 3.2s linear, opacity 1.5s ease}
-  .bicho.rapido{transition:transform 1.8s linear, opacity 1s ease}
-  .bicho > g{transform-box:fill-box; transform-origin:50% 100%}
-  .bicho.camina > g{animation:paso .45s ease-in-out infinite}
-  .bicho.rapido.camina > g{animation-duration:.28s}
-  @keyframes paso{50%{transform:translateY(-4px) rotate(2deg)}}
-  .respira > g{animation:respira 3.5s ease-in-out infinite}
-  @keyframes respira{50%{transform:scaleY(1.03)}}
-  .oculto{opacity:0}
-  /* el lobo sopla */
-  #viento path{opacity:0}
-  .soplando #viento path{animation:viento 1.1s ease-out infinite}
-  .soplando #viento path:nth-child(2){animation-delay:.25s} .soplando #viento path:nth-child(3){animation-delay:.5s}
-  @keyframes viento{0%{opacity:0; transform:translateX(0)} 30%{opacity:.8} 100%{opacity:0; transform:translateX(70px)}}
-  .soplando #cachetes{transform:scale(1.35); transform-box:fill-box; transform-origin:center}
-  #cachetes{transition:transform .4s}
-  .sentado #cuerpoLobo{transform:translate(0,14px) scaleY(.85); transform-box:fill-box; transform-origin:50% 100%}
-  #cuerpoLobo{transition:transform 1.2s ease}
-  /* casa de paja que vuela y palitos que se caen */
-  #paja{transition:transform 3s ease-in, opacity 3s ease-in; transform-box:fill-box; transform-origin:50% 100%}
-  #paja.volada{transform:translate(160px,-150px) rotate(25deg) scale(.4); opacity:0}
-  .brizna{opacity:0}
-  .volando .brizna{animation:brizna 3.5s ease-out forwards}
-  @keyframes brizna{0%{opacity:1; transform:translate(0,0) rotate(0)} 100%{opacity:0; transform:translate(var(--dx),var(--dy)) rotate(var(--r))}}
-  .palito{transform-box:fill-box; transform-origin:50% 100%; transition:transform 1.4s ease-in}
-  .caida .palito{transform:rotate(var(--caer))}
-  #techoPalos{transition:transform 1.6s ease-in, opacity 1.6s; transform-box:fill-box; transform-origin:50% 100%}
-  .caida #techoPalos{transform:translate(20px,70px) rotate(14deg); opacity:.0}
-  #caritas, #sopa, #luzVentana{transition:opacity 2s ease}
-  /* textos y controles */
+  /* de fondo, el mismo mapa difuminado, para cuando la vista es más ancha que el mapa */
+  #fondo{position:fixed; inset:-40px; background:url(img/mapa.jpg) center/cover; filter:blur(24px) brightness(.85)}
+  #vista{position:fixed; inset:0; overflow:hidden}
+  #mundo{position:absolute; left:0; top:0; width:1536px; height:2752px; transform-origin:0 0; will-change:transform}
+  #mapa{position:absolute; inset:0; width:100%; height:100%}
+  .pieza{position:absolute; left:0; top:0; will-change:transform}
+  .pieza img{position:absolute; display:block; pointer-events:none}
+  /* tarde y noche: un velo de color sobre todo el mundo */
+  #tarde, #noche{position:absolute; inset:0; pointer-events:none; opacity:0}
+  #tarde{background:linear-gradient(#ffb27a, #ffcf9a 40%, #ffd9a8); mix-blend-mode:multiply}
+  #noche{background:linear-gradient(#0f1a3d, #26346a 30%, #2c3a70); mix-blend-mode:multiply}
+  .estrella{position:absolute; width:6px; height:6px; border-radius:50%; background:#fff8dc; box-shadow:0 0 8px #fff3b0; opacity:0}
+  #luna{position:absolute; left:1240px; top:70px; width:110px; height:110px; border-radius:50%; background:#fbf3d0;
+    box-shadow:0 0 50px 12px rgba(255,244,190,.45); opacity:0}
+  #luz{position:absolute; left:960px; top:2180px; width:240px; height:240px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,226,140,.95) 0%, rgba(255,214,120,.5) 30%, rgba(255,214,120,0) 68%); opacity:0; mix-blend-mode:screen}
+  /* los chanchitos asomados a la ventana de la casa de ladrillos */
+  #ventana{position:absolute; left:1042px; top:2262px; width:66px; height:56px; overflow:hidden; opacity:0}
+  #ventana img{position:absolute; top:4px; height:110px}
+  .humo{position:absolute; width:46px; height:46px; border-radius:50%; background:rgba(255,255,255,.75); filter:blur(4px); opacity:0}
+  /* paja que vuela cuando sopla el lobo */
+  .brizna{position:absolute; width:26px; height:5px; border-radius:3px; background:#e4bd5a; opacity:0}
   #texto{position:fixed; left:50%; bottom:max(12px, env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(880px, calc(100% - 24px));
-    background:rgba(255,248,236,.86); color:var(--tinta); border-radius:16px; padding:10px 16px; box-shadow:0 4px 18px rgba(0,0,0,.25);
-    font:15px/1.4 Georgia,'Times New Roman',serif; transition:opacity .8s; max-height:32vh; overflow:auto}
+    background:rgba(255,248,236,.9); color:var(--tinta); border-radius:16px; padding:10px 16px; box-shadow:0 4px 18px rgba(0,0,0,.25);
+    font:15px/1.4 Georgia,'Times New Roman',serif; max-height:32vh; overflow:auto; transition:opacity .6s}
   #texto:empty, body:not(.con-texto) #texto{opacity:0; pointer-events:none}
-  #verTexto{font:700 16px/1 Georgia,serif}
-  body.con-texto #verTexto{background:rgba(242,165,103,.9); color:#3a2415}
   #texto p{margin:0 0 3px}
-  #controles{position:fixed; top:max(10px, env(safe-area-inset-top)); right:12px; display:flex; gap:8px}
+  #controles{position:fixed; top:max(10px, env(safe-area-inset-top)); right:12px; display:flex; gap:8px; z-index:3}
   #controles button, #controles a{all:unset; cursor:pointer; width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
-    background:rgba(42,26,15,.55); color:var(--crema); backdrop-filter:blur(6px)}
+    background:rgba(42,26,15,.55); color:var(--crema); backdrop-filter:blur(6px); font:700 16px/1 Georgia,serif}
   #controles svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
   #pausa svg{fill:currentColor; stroke:none}
-  #inicio{position:fixed; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.45); transition:opacity 1s}
+  body.con-texto #verTexto{background:rgba(242,165,103,.92); color:var(--tinta)}
+  #inicio{position:fixed; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.35); transition:opacity 1s; z-index:4}
   #inicio.fuera{opacity:0; pointer-events:none}
   #inicio .caja{text-align:center; color:var(--crema)}
-  #inicio h1{margin:0 0 18px; font:bold clamp(28px,6vw,52px)/1.1 Georgia,serif; text-shadow:0 3px 12px rgba(0,0,0,.5)}
+  #inicio h1{margin:0 0 18px; font:bold clamp(30px,6vw,56px)/1.1 Georgia,serif; text-shadow:0 3px 14px rgba(0,0,0,.55)}
   #contar{all:unset; cursor:pointer; background:var(--ambar); color:var(--tinta); font:600 20px/1 system-ui,sans-serif; padding:16px 28px; border-radius:40px;
     box-shadow:0 6px 20px rgba(0,0,0,.35); display:inline-flex; align-items:center; gap:10px}
   #contar svg{width:22px; height:22px; fill:currentColor}
   @media (max-height:430px){ #texto{font-size:13px; padding:7px 12px; max-height:28vh} }
-  @media (prefers-reduced-motion:reduce){ .nube,.pasto,.humo,.bicho.camina > g,.respira > g{animation:none} }
 </style>
 </head>
 <body>
-<svg id="escena" viewBox="0 0 800 450" preserveAspectRatio="xMidYMax slice" aria-label="Los tres chanchitos"></svg>
+<div id="fondo"></div>
+<div id="vista">
+  <div id="mundo">
+    <img id="mapa" src="img/mapa.jpg" alt="">
+  </div>
+</div>
 <div id="texto" aria-live="polite"></div>
 <div id="controles">
   <a href="../index.html" aria-label="Volver a los libros" title="Todos los libros"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
@@ -98,245 +80,210 @@
 (function () {
 "use strict";
 var $ = function (s) { return document.querySelector(s); };
-var svg = $("#escena");
+var mundo = $("#mundo"), vista = $("#vista");
 
-/* ---------- dibujos ---------- */
-// Chanchito, con los pies en (0,0) mirando a la derecha; el color es su pañuelo
-function chanchito(color) {
-  return '<g>' +
-    '<path d="M-24 -34 q-12 -2 -9 -10 q3 -6 7 0" fill="none" stroke="#e48aa3" stroke-width="2.5" stroke-linecap="round"/>' +
-    '<rect x="-17" y="-12" width="8" height="12" rx="3" fill="#ef9db3"/><rect x="8" y="-12" width="8" height="12" rx="3" fill="#ef9db3"/>' +
-    '<ellipse cx="0" cy="-28" rx="27" ry="21" fill="#f7b8c8" stroke="#e08ea6" stroke-width="2"/>' +
-    '<path d="M6 -40 q12 10 0 22" fill="none" stroke="' + color + '" stroke-width="7" stroke-linecap="round"/>' +
-    '<path d="M12 -63 l-2 -14 l11 9 z M26 -63 l4 -13 l5 14 z" fill="#f2a2b8" stroke="#e08ea6" stroke-width="1.5" stroke-linejoin="round"/>' +
-    '<circle cx="20" cy="-50" r="17" fill="#f7b8c8" stroke="#e08ea6" stroke-width="2"/>' +
-    '<ellipse cx="34" cy="-46" rx="8" ry="6.5" fill="#f29bb3" stroke="#e08ea6" stroke-width="1.5"/>' +
-    '<circle cx="31.5" cy="-46" r="1.4" fill="#b8607a"/><circle cx="36.5" cy="-46" r="1.4" fill="#b8607a"/>' +
-    '<circle cx="23" cy="-55" r="2.3" fill="#3a2415"/>' +
-    '<ellipse cx="16" cy="-45" rx="4" ry="2.5" fill="#ff8fab" opacity=".45"/>' +
-    '</g>';
-}
-// Lobo gris, más bien tontito que malo; pies en (0,0)
-function lobo() {
-  return '<g><g id="cuerpoLobo">' +
-    '<path d="M-38 -48 q-30 -6 -34 -30 q14 10 30 12 z" fill="#7e8591" stroke="#646a75" stroke-width="2"/>' +
-    '<rect x="-24" y="-20" width="11" height="20" rx="4" fill="#7e8591"/><rect x="10" y="-20" width="11" height="20" rx="4" fill="#7e8591"/>' +
-    '<ellipse cx="-4" cy="-46" rx="38" ry="30" fill="#949aa6" stroke="#646a75" stroke-width="2"/>' +
-    '<ellipse cx="0" cy="-40" rx="20" ry="17" fill="#c9ccd3"/>' +
-    '<path d="M18 -96 l-4 -22 l14 14 z M36 -96 l6 -21 l6 19 z" fill="#7e8591" stroke="#646a75" stroke-width="2" stroke-linejoin="round"/>' +
-    '<circle cx="30" cy="-82" r="23" fill="#949aa6" stroke="#646a75" stroke-width="2"/>' +
-    '<g id="cachetes"><ellipse cx="50" cy="-76" rx="18" ry="11" fill="#a9aeb8" stroke="#646a75" stroke-width="2"/></g>' +
-    '<ellipse cx="67" cy="-79" rx="5" ry="4" fill="#3a2f33"/>' +
-    '<circle cx="34" cy="-90" r="3" fill="#3a2415"/><path d="M28 -97 q6 -3 11 0" stroke="#3a2415" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-    '<g id="viento" stroke="#cfe6f5" stroke-width="4" stroke-linecap="round" fill="none">' +
-      '<path d="M76 -86 q20 -4 40 0"/><path d="M78 -76 q24 0 48 4"/><path d="M76 -66 q20 4 40 8"/></g>' +
-    '</g></g>';
-}
-function arbol(x, y, s, c) {
-  return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')">' +
-    '<rect x="-7" y="-60" width="14" height="60" rx="4" fill="#8a6142"/>' +
-    '<circle cx="0" cy="-78" r="34" fill="' + (c || "#7fb069") + '"/><circle cx="-22" cy="-62" r="22" fill="' + (c || "#7fb069") + '"/>' +
-    '<circle cx="22" cy="-64" r="24" fill="' + (c || "#7fb069") + '"/><circle cx="-8" cy="-92" r="18" fill="#a3c98a" opacity=".6"/></g>';
-}
-function flores(x0, x1, y) {
-  var s = "";
-  for (var x = x0; x < x1; x += 37 + (x % 23)) {
-    var c = ["#f6d860", "#f2a5c0", "#ffffff", "#b9a4e8"][x % 4];
-    s += '<g class="pasto"><path d="M' + x + ' ' + y + ' q-2 -10 0 -16" stroke="#6a9a4f" stroke-width="2" fill="none"/>' +
-         '<circle cx="' + x + '" cy="' + (y - 18) + '" r="4" fill="' + c + '"/></g>';
-  }
-  return s;
-}
-function nube(y, escala, dur, retraso) {
-  return '<g class="nube" style="animation-duration:' + dur + 's; animation-delay:' + retraso + 's"><g transform="translate(0 ' + y + ') scale(' + escala + ')" fill="#fff" opacity=".85">' +
-    '<ellipse cx="0" cy="0" rx="50" ry="18"/><circle cx="-20" cy="-10" r="20"/><circle cx="12" cy="-16" r="24"/></g></g>';
-}
+/* ---------- el mapa ----------
+   Todo está en coordenadas del dibujo del mapa (1536 x 2752). El sendero, de la
+   casa de mamá (arriba) a la de ladrillos y el bosque (abajo): */
+var SENDERO = [[660,690],[790,730],[790,800],[640,860],[470,910],[470,960],[600,1000],[740,1040],[720,1120],[600,1200],
+  [560,1260],[600,1320],[700,1350],[820,1380],[940,1410],[930,1480],[780,1560],[620,1600],[580,1660],[620,1720],
+  [780,1770],[960,1800],[1040,1840],[960,1920],[660,2000],[400,2060],[220,2160],[180,2260],[280,2340],[500,2400],
+  [720,2460],[900,2540],[1120,2640],[1300,2760]];
+var PASO = { casaMama: 0, paja: 7, palos: 20, ladrillos: 30, bosque: 33 };
 
-function dibujar() {
-  var estrellas = "";
-  for (var i = 0; i < 40; i++) estrellas += '<circle class="estrella" cx="' + ((i * 197) % 800) + '" cy="' + (10 + (i * 89) % 200) + '" r="' + (1 + (i % 3) * .6) + '" fill="#fff"/>';
-  // casa de paja: un montoncito redondo, y briznas sueltas para cuando vuela
-  var briznas = "";
-  for (var b = 0; b < 26; b++) {
-    briznas += '<path class="brizna" d="M' + (1215 + (b * 13) % 90) + ' ' + (270 - (b * 7) % 50) + ' l14 -4" stroke="#e2b84f" stroke-width="3" stroke-linecap="round" ' +
-      'style="--dx:' + (80 + (b * 37) % 220) + 'px; --dy:' + (-60 - (b * 53) % 160) + 'px; --r:' + ((b * 47) % 360) + 'deg; animation-delay:' + ((b % 6) * .12) + 's"/>';
+// Piezas: dibujo, alto en el mapa y dónde va (los personajes, por los pies)
+function pieza(id, src, alto, x, y, base) {
+  var d = document.createElement("div");
+  d.className = "pieza"; d.id = id;
+  d.innerHTML = '<div class="giro"><div class="cuerpo"><img alt="" src="img/' + src + '"></div></div>';
+  mundo.appendChild(d);
+  var img = d.querySelector("img");
+  img.style.height = alto + "px";
+  img.onload = function () {
+    var ancho = alto * img.naturalWidth / img.naturalHeight;
+    img.style.width = ancho + "px";
+    img.style.left = (base ? 0 : -ancho / 2) + "px";
+    img.style.top = (base ? 0 : -alto) + "px";
+  };
+  gsap.set(d, { x: x, y: y });
+  return d;
+}
+var P = {};
+function armar() {
+  mundo.querySelectorAll(".pieza, .estrella, .humo, .brizna, #tarde, #noche, #luna, #luz, #ventana").forEach(function (e) { e.remove(); });
+  // las casitas que se caen van sobre el mapa (que ya no las tiene dibujadas)
+  P.paja = pieza("paja", "casa-paja.webp", 390, 840, 700, true);
+  P.palos = pieza("palos", "casa-palos.webp", 430, 920, 1400, true);
+  P.pajaSuelta = pieza("pajaSuelta", "paja-suelta.webp", 150, 1030, 1075);
+  P.palitos = pieza("palitos", "palitos.webp", 210, 1150, 1830);
+  gsap.set([P.pajaSuelta, P.palitos], { autoAlpha: 0 });
+  P.mama = pieza("mama", "mama.webp", 190, 470, 725);
+  P.ch1 = pieza("ch1", "ch-amarillo.webp", 150, 560, 735);
+  P.ch2 = pieza("ch2", "ch-azul.webp", 150, 620, 745);
+  P.ch3 = pieza("ch3", "ch-rojo.webp", 150, 690, 740);
+  P.lobo = pieza("lobo", "lobo-camina.webp", 235, 420, 900);
+  gsap.set(P.lobo, { autoAlpha: 0 });
+  // tres caritas en la ventana
+  var v = document.createElement("div"); v.id = "ventana";
+  v.innerHTML = '<img src="img/ch-amarillo.webp" style="left:-26px"><img src="img/ch-azul.webp" style="left:-4px"><img src="img/ch-rojo.webp" style="left:18px">';
+  mundo.appendChild(v);
+  ["tarde", "noche"].forEach(function (id) { var d = document.createElement("div"); d.id = id; mundo.appendChild(d); });
+  for (var i = 0; i < 60; i++) {
+    var e = document.createElement("div"); e.className = "estrella";
+    e.style.left = ((i * 263) % 1500 + 18) + "px"; e.style.top = (14 + (i * 97) % 300) + "px";
+    mundo.appendChild(e);
   }
-  var palitos = "";
-  for (var k = 0; k < 13; k++) {
-    var px = 1995 + k * 9;
-    palitos += '<rect class="palito" x="' + px + '" y="252" width="8" height="78" rx="3" fill="' + (k % 2 ? "#a0703f" : "#8d6033") + '" ' +
-      'style="--caer:' + (k % 2 ? 84 : -84) + 'deg; transition-delay:' + (k * .07) + 's"/>';
-  }
-  var ladrillos = "";
-  for (var fila = 0; fila < 7; fila++) {
-    for (var col = 0; col < 8; col++) {
-      var bx = 2770 + col * 20 + (fila % 2 ? 10 : 0);
-      if (bx > 2915) continue;
-      ladrillos += '<rect x="' + bx + '" y="' + (250 + fila * 11) + '" width="18" height="9" rx="1.5" fill="' + ((fila + col) % 3 ? "#c8573f" : "#b44a35") + '"/>';
+  var luna = document.createElement("div"); luna.id = "luna"; mundo.appendChild(luna);
+  var luz = document.createElement("div"); luz.id = "luz"; mundo.appendChild(luz);
+  // humito de las chimeneas, que sube despacio todo el tiempo
+  [[575, 300], [1196, 1960]].forEach(function (c, k) {
+    for (var j = 0; j < 3; j++) {
+      var h = document.createElement("div"); h.className = "humo"; mundo.appendChild(h);
+      gsap.fromTo(h, { x: c[0], y: c[1], scale: .4, opacity: 0 },
+        { x: c[0] + 40, y: c[1] - 130, scale: 1.6, keyframes: { opacity: [0, .7, 0] }, duration: 7, repeat: -1, delay: j * 2.3 + k, ease: "sine.out" });
     }
-  }
-  svg.innerHTML =
-    '<defs>' +
-      '<linearGradient id="dia" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9d8f0"/><stop offset="1" stop-color="#fdf1d8"/></linearGradient>' +
-      '<linearGradient id="tarde" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3b58e"/><stop offset="1" stop-color="#fde3c3"/></linearGradient>' +
-      '<linearGradient id="noche" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16213f"/><stop offset="1" stop-color="#3b4777"/></linearGradient>' +
-      '<radialGradient id="luz" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7a3" stop-opacity=".9"/><stop offset="1" stop-color="#ffe7a3" stop-opacity="0"/></radialGradient>' +
-    '</defs>' +
-    '<rect class="cielo" id="cDia" width="800" height="450" fill="url(#dia)"/>' +
-    '<rect class="cielo" id="cTarde" width="800" height="450" fill="url(#tarde)" opacity="0"/>' +
-    '<rect class="cielo" id="cNoche" width="800" height="450" fill="url(#noche)" opacity="0"/>' +
-    '<g id="estrellas">' + estrellas + '</g>' +
-    '<circle id="sol" cx="660" cy="80" r="34" fill="#ffd56b"/>' +
-    '<g id="luna" opacity="0" transform="translate(0 80)"><circle cx="640" cy="70" r="26" fill="#f6f1d9"/><circle cx="652" cy="62" r="24" fill="#16213f" opacity=".9"/></g>' +
-    nube(70, 1, 140, -20) + nube(120, .7, 170, -90) + nube(50, .8, 200, -150) +
-    // lomas lejanas: se mueven más lento que el sendero (profundidad)
-    '<g id="lomas">' +
-      '<path d="M0 300 Q200 200 420 280 T860 260 T1300 270 T1760 250 T2200 280 L2200 450 L0 450 Z" fill="#a9cf8f" opacity=".75"/>' +
-    '</g>' +
-    '<g id="mundo">' +
-      '<rect x="-400" y="300" width="4000" height="150" fill="#8cc06b"/>' +
-      '<path d="M-400 352 C200 336 500 372 900 350 S1700 334 2100 356 S2900 344 3600 352 L3600 384 C2900 378 2500 392 2100 388 S1300 368 900 384 S200 372 -400 386 Z" fill="#e6cf9e"/>' +
-      flores(-300, 3500, 412) + flores(-260, 3500, 330) +
-      arbol(40, 320, 1, "#77a95f") + arbol(560, 318, .8) + arbol(960, 316, .9, "#86b86d") + arbol(1500, 318, 1.1, "#77a95f") +
-      arbol(1760, 316, .85) + arbol(2280, 318, .95, "#86b86d") + arbol(2560, 316, .8) +
-      // bosque al final del sendero, donde se va el lobo
-      arbol(3120, 320, 1.2, "#5f8f4e") + arbol(3200, 312, 1, "#6b9c57") + arbol(3290, 322, 1.3, "#5f8f4e") + arbol(3380, 314, 1.1, "#6b9c57") +
-      // casa de mamá
-      '<g><rect x="200" y="250" width="120" height="80" rx="4" fill="#f3e2c3" stroke="#c9a77c" stroke-width="2"/>' +
-      '<path d="M188 254 L260 200 L332 254 Z" fill="#c97b5a"/><rect x="246" y="284" width="28" height="46" rx="12" fill="#8a5a3b"/>' +
-      '<rect x="212" y="268" width="24" height="20" rx="3" fill="#bfe1f2" stroke="#c9a77c" stroke-width="2"/>' +
-      '<rect x="284" y="268" width="24" height="20" rx="3" fill="#bfe1f2" stroke="#c9a77c" stroke-width="2"/></g>' +
-      '<g transform="translate(150 330)">' + chanchito("#c9a0dc").replace('<g>', '<g transform="scale(1.25)">') + '</g>' +
-      // casa de paja
-      '<g id="paja"><path d="M1200 330 Q1196 250 1260 240 Q1324 250 1320 330 Z" fill="#ebc65e" stroke="#c9a03d" stroke-width="2"/>' +
-      '<path d="M1210 300 q50 -10 100 0 M1206 316 q54 -8 108 0 M1216 280 q44 -12 88 0 M1228 262 q32 -8 64 0" stroke="#c9a03d" stroke-width="2" fill="none"/>' +
-      '<path d="M1248 330 v-30 a12 12 0 0 1 24 0 v30 z" fill="#8a6a2e"/></g>' +
-      '<g id="briznas">' + briznas + '</g>' +
-      // casa de palitos
-      '<g id="palos">' + palitos +
-      '<path id="techoPalos" d="M1982 256 L2050 206 L2120 256 Z" fill="#8d6033" stroke="#6e4a26" stroke-width="2"/></g>' +
-      // casa de ladrillos, con chimenea y humo
-      '<g><rect x="2770" y="244" width="150" height="86" fill="#d0654b" stroke="#9c4532" stroke-width="2"/>' + ladrillos +
-      '<rect x="2880" y="180" width="22" height="50" fill="#b44a35" stroke="#9c4532" stroke-width="2"/>' +
-      '<path d="M2756 250 L2845 186 L2934 250 Z" fill="#7a4a3a" stroke="#5e372b" stroke-width="2"/>' +
-      '<circle class="humo" cx="2891" cy="176" r="10" fill="#e8e6e2"/><circle class="humo" cx="2891" cy="176" r="10" fill="#e8e6e2" style="animation-delay:2s"/>' +
-      '<circle class="humo" cx="2891" cy="176" r="10" fill="#e8e6e2" style="animation-delay:4s"/>' +
-      '<path d="M2790 330 v-44 a14 14 0 0 1 28 0 v44 z" fill="#a23b2f"/><circle cx="2812" cy="310" r="2.5" fill="#f2d16b"/>' +
-      '<ellipse id="luzVentana" cx="2873" cy="282" rx="60" ry="46" fill="url(#luz)" opacity="0"/>' +
-      '<rect x="2846" y="262" width="54" height="40" rx="4" fill="#fbe7a6" stroke="#9c4532" stroke-width="3"/>' +
-      '<g id="caritas" opacity="0">' +
-        [2857, 2873, 2889].map(function (cx) {
-          return '<circle cx="' + cx + '" cy="290" r="8" fill="#f7b8c8" stroke="#e08ea6"/><ellipse cx="' + (cx + 1) + '" cy="292" rx="3.5" ry="2.6" fill="#f29bb3"/>' +
-                 '<circle cx="' + (cx - 2) + '" cy="287" r="1.2" fill="#3a2415"/><circle cx="' + (cx + 3) + '" cy="287" r="1.2" fill="#3a2415"/>';
-        }).join("") + '</g>' +
-      '<path d="M2873 262 v40 M2846 282 h54" stroke="#9c4532" stroke-width="2.5"/></g>' +
-      // plato de sopa para el lobo
-      '<g id="sopa" opacity="0"><ellipse cx="2700" cy="356" rx="20" ry="7" fill="#f4f1ea" stroke="#b9b2a5" stroke-width="2"/>' +
-        '<ellipse cx="2700" cy="354" rx="14" ry="4" fill="#e9a84a"/><path d="M2694 344 q4 -8 0 -14 M2704 344 q4 -8 0 -14" stroke="#e8e6e2" stroke-width="2" fill="none"/></g>' +
-      '<g id="lobo" class="bicho oculto" transform="translate(500 358)">' + lobo() + '</g>' +
-      '<g id="ch1" class="bicho respira" transform="translate(330 362)">' + chanchito("#f2c14e") + '</g>' +
-      '<g id="ch2" class="bicho respira" transform="translate(270 366)">' + chanchito("#6fb3d8") + '</g>' +
-      '<g id="ch3" class="bicho respira" transform="translate(390 366)">' + chanchito("#e06b5a") + '</g>' +
-    '</g>';
+  });
+  for (var b = 0; b < 30; b++) { var z = document.createElement("div"); z.className = "brizna"; mundo.appendChild(z); }
+  // todos respiran tranquilos cuando están quietos
+  Object.keys(P).forEach(function (k) {
+    if (/^(ch|mama|lobo)/.test(k)) gsap.to(P[k].querySelector(".cuerpo"), { scaleY: 1.03, transformOrigin: "50% 100%", duration: 1.8, yoyo: true, repeat: -1, ease: "sine.inOut", delay: Math.random() });
+  });
+}
+
+/* ---------- la cámara ----------
+   cam = punto del mapa que va al centro y cuánto mapa entra de alto */
+var cam = { x: 768, y: 1376, alto: 2752 };
+function aplicarCamara() {
+  var vw = vista.clientWidth, vh = vista.clientHeight;
+  var s = vh / cam.alto;
+  var x = vw / 2 - cam.x * s, y = vh / 2 - cam.y * s;
+  // si el mapa cubre la pantalla, que no se vea el borde
+  if (1536 * s >= vw) x = Math.min(0, Math.max(vw - 1536 * s, x)); else x = (vw - 1536 * s) / 2;
+  if (2752 * s >= vh) y = Math.min(0, Math.max(vh - 2752 * s, y));
+  mundo.style.transform = "translate(" + x + "px," + y + "px) scale(" + s + ")";
+}
+function camara(x, y, alto, dur) {
+  gsap.killTweensOf(cam);
+  if (!dur) { cam.x = x; cam.y = y; cam.alto = alto; aplicarCamara(); return; }
+  gsap.to(cam, { x: x, y: y, alto: alto, duration: dur, ease: "sine.inOut", onUpdate: aplicarCamara });
+}
+window.addEventListener("resize", aplicarCamara);
+
+/* ---------- caminar por el sendero ---------- */
+function pos(el) { return [gsap.getProperty(el, "x"), gsap.getProperty(el, "y")]; }
+// Recorre el sendero desde el punto más cercano hasta el paso "hasta" y termina en "fin"
+function caminar(el, hasta, fin, rapido, tl, en) {
+  var p = pos(el), desde = 0, mejor = Infinity;
+  SENDERO.forEach(function (q, i) { var d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < mejor) { mejor = d; desde = i; } });
+  var puntos = [];
+  if (desde <= hasta) for (var i = desde; i <= hasta; i++) puntos.push(SENDERO[i]);
+  else for (var j = desde; j >= hasta; j--) puntos.push(SENDERO[j]);
+  if (fin) puntos.push(fin);
+  var vel = rapido ? 300 : 150, t = en || 0, ant = p;
+  var cuerpo = el.querySelector(".cuerpo"), giro = el.querySelector(".giro");
+  var duracion = 0;
+  puntos.forEach(function (q) {
+    var d = Math.hypot(q[0] - ant[0], q[1] - ant[1]);
+    if (d < 1) return;
+    var dt = d / vel;
+    tl.to(giro, { scaleX: q[0] < ant[0] - 2 ? -1 : 1, duration: .25 }, t);
+    tl.to(el, { x: q[0], y: q[1], duration: dt, ease: "none" }, t);
+    t += dt; duracion += dt; ant = q;
+  });
+  // saltitos al caminar
+  if (duracion > 0) tl.to(cuerpo, { y: -8, duration: rapido ? .14 : .22, yoyo: true, repeat: Math.max(1, Math.round(duracion / (rapido ? .14 : .22)) | 1), ease: "sine.inOut" }, en || 0);
+  return duracion;
+}
+function cambiarDibujo(el, src) { el.querySelector("img").src = "img/" + src; }
+
+/* ---------- efectos ---------- */
+function soplar(el, si) { cambiarDibujo(el, si ? "lobo-sopla.webp" : "lobo-camina.webp"); }
+function volarPaja() {
+  gsap.to(P.paja, { x: "+=260", y: "-=320", rotation: 30, scale: .35, autoAlpha: 0, duration: 3.2, ease: "power1.in", transformOrigin: "50% 100%" });
+  gsap.to(P.pajaSuelta, { autoAlpha: 1, duration: 1.5, delay: 1 });
+  mundo.querySelectorAll(".brizna").forEach(function (z, i) {
+    gsap.fromTo(z, { x: 900 + (i * 17) % 220, y: 820 + (i * 29) % 220, rotation: i * 37, opacity: 1 },
+      { x: "+=" + (220 + (i * 41) % 380), y: "-=" + (120 + (i * 53) % 420), rotation: "+=" + (180 + i * 20), opacity: 0, duration: 3 + (i % 5) * .4, delay: (i % 6) * .12, ease: "power1.out" });
+  });
+}
+function caerPalos() {
+  gsap.to(P.palos, { scaleY: .15, scaleX: 1.15, autoAlpha: 0, y: "+=40", transformOrigin: "50% 100%", duration: 1.8, ease: "power2.in" });
+  gsap.to(P.palitos, { autoAlpha: 1, duration: 1.2, delay: .8 });
+}
+function cielo(c, dur) {
+  gsap.to("#tarde", { opacity: c === "tarde" ? .55 : 0, duration: dur });
+  gsap.to("#noche", { opacity: c === "noche" ? .78 : 0, duration: dur });
+  gsap.to(".estrella", { opacity: c === "noche" ? 1 : 0, duration: dur, stagger: dur ? .05 : 0 });
+  gsap.to("#luna", { opacity: c === "noche" ? 1 : 0, duration: dur });
+  // el fondo de los costados también cambia con la hora
+  gsap.to("#fondo", { filter: "blur(24px) brightness(" + (c === "noche" ? .3 : c === "tarde" ? .7 : .85) + ")", duration: dur });
 }
 
 /* ---------- escenas ----------
-   Cada escena dice dónde va la cámara, cómo está el cielo y dónde está cada uno al
-   empezar (antes). Los efectos pasan a medida que avanza la narración (en = qué
-   fracción del audio). Saltar a una escena aplica todo de golpe, sin animar. */
-var ESCENAS = [
-  null,
-  { cam: 0, cielo: "dia", antes: {} },
-  { cam: 0, cielo: "dia", antes: {},
-    efectos: [{ en: .75, ch: { ch1: 560, ch2: 500, ch3: 620 } }] },
-  { cam: 800, cielo: "dia", antes: { ch: { ch1: 1150, ch2: 1050, ch3: 1100 } },
-    efectos: [{ en: .55, ch: { ch2: 1450, ch3: 1520 } }] },
-  { cam: 1600, cielo: "dia", antes: { ch: { ch2: 1950, ch3: 2200 } },
-    efectos: [{ en: .6, ch: { ch3: 2330 } }] },
-  { cam: 2400, cielo: "dia", antes: { ch: { ch3: 2740 } } },
-  { cam: 800, cielo: "tarde", antes: { lobo: { x: 760, ver: true }, ch: { ch1: 1150 } },
-    efectos: [{ en: .02, lobo: { x: 1060 } }, { en: .55, sopla: true }, { en: .66, paja: true }, { en: .8, sopla: false },
-              { en: .85, ch: { ch1: 1920 }, rapido: true }] },
-  { cam: 1600, cielo: "tarde", antes: { lobo: { x: 1560 }, ch: { ch1: 1920, ch2: 1950 } },
-    efectos: [{ en: .02, lobo: { x: 1840 } }, { en: .45, sopla: true }, { en: .55, palos: true }, { en: .72, sopla: false },
-              { en: .78, ch: { ch1: 2740, ch2: 2700 }, rapido: true }] },
-  { cam: 2400, cielo: "tarde", antes: { lobo: { x: 2380 }, ch: { ch1: 2800, ch2: 2800, ch3: 2800 }, dentro: true },
-    efectos: [{ en: .02, lobo: { x: 2640 } }, { en: .5, sopla: true }, { en: .82, sopla: false }, { en: .88, sentado: true }] },
-  { cam: 2400, cielo: "tarde", antes: { lobo: { x: 2640 }, sentado: true, dentro: true },
-    efectos: [{ en: .4, sopa: true }, { en: .7, sentado: false }, { en: .78, sopa: false, lobo: { x: 3400 } }] },
-  { cam: 2400, cielo: "noche", antes: { lobo: { x: 3400, ver: false }, dentro: true, luz: true } }
+   cam: [x, y, alto]; cielo; arranque(tl): lo que pasa al llegar; efectos: lo que
+   pasa a medida que avanza la narración (en = fracción del audio). */
+var LADO = { paja: [850, 1060], palos: [905, 1795], ladrillos: [840, 2420], puerta: [930, 2385],
+             loboPaja: [700, 1050], loboPalos: [770, 1800], loboLadrillos: [650, 2450] };
+function entrar(el) { gsap.to(el, { autoAlpha: 0, duration: 1 }); }
+var ESCENAS = [null,
+  { cam: [768, 1376, 2752], cielo: "dia" },
+  { cam: [640, 660, 620], cielo: "dia",
+    efectos: [{ en: .7, hacer: function (tl) { caminar(P.ch1, 3, null, false, tl); caminar(P.ch2, 3, null, false, tl, .5); caminar(P.ch3, 3, null, false, tl, 1); } }] },
+  { cam: [840, 990, 620], cielo: "dia",
+    arranque: function (tl) { caminar(P.ch1, PASO.paja, LADO.paja, false, tl); caminar(P.ch2, PASO.paja - 1, null, false, tl); caminar(P.ch3, PASO.paja - 2, null, false, tl); },
+    efectos: [{ en: .6, hacer: function (tl) { caminar(P.ch2, 12, null, false, tl); caminar(P.ch3, 12, null, false, tl, .6); } }] },
+  { cam: [960, 1690, 640], cielo: "dia",
+    arranque: function (tl) { caminar(P.ch2, PASO.palos, LADO.palos, false, tl); caminar(P.ch3, PASO.palos + 1, null, false, tl, .5); },
+    efectos: [{ en: .62, hacer: function (tl) { caminar(P.ch3, 26, null, false, tl); } }] },
+  { cam: [940, 2320, 660], cielo: "dia",
+    arranque: function (tl) { caminar(P.ch3, PASO.ladrillos, LADO.ladrillos, false, tl); } },
+  { cam: [840, 990, 620], cielo: "tarde",
+    arranque: function (tl) { gsap.set(P.lobo, { autoAlpha: 1 }); caminar(P.lobo, PASO.paja, LADO.loboPaja, false, tl); },
+    efectos: [{ en: .5, hacer: function () { soplar(P.lobo, true); } }, { en: .62, hacer: volarPaja },
+              { en: .78, hacer: function () { soplar(P.lobo, false); } },
+              { en: .84, hacer: function (tl) { caminar(P.ch1, PASO.palos, [985, 1805], true, tl); } }] },
+  { cam: [960, 1690, 640], cielo: "tarde",
+    arranque: function (tl) { caminar(P.lobo, PASO.palos, LADO.loboPalos, false, tl); },
+    efectos: [{ en: .42, hacer: function () { soplar(P.lobo, true); } }, { en: .52, hacer: caerPalos },
+              { en: .7, hacer: function () { soplar(P.lobo, false); } },
+              { en: .76, hacer: function (tl) { caminar(P.ch1, PASO.ladrillos, LADO.puerta, true, tl); caminar(P.ch2, PASO.ladrillos, LADO.puerta, true, tl, .3); } }] },
+  { cam: [900, 2330, 660], cielo: "tarde",
+    arranque: function (tl) {
+      [P.ch1, P.ch2, P.ch3].forEach(entrar); gsap.to("#ventana", { opacity: 1, duration: 1.5, delay: .8 });
+      caminar(P.lobo, PASO.ladrillos - 1, LADO.loboLadrillos, false, tl);
+    },
+    efectos: [{ en: .48, hacer: function () { soplar(P.lobo, true); } },
+              { en: .55, hacer: function () { gsap.fromTo(P.lobo.querySelector(".cuerpo"), { x: -3 }, { x: 3, duration: .12, yoyo: true, repeat: 15 }); } },
+              { en: .8, hacer: function () { soplar(P.lobo, false); } },
+              { en: .87, hacer: function () { cambiarDibujo(P.lobo, "lobo-cansado.webp"); } }] },
+  { cam: [900, 2330, 660], cielo: "tarde",
+    efectos: [{ en: .38, hacer: function () { cambiarDibujo(P.lobo, "lobo-sentado.webp"); } },
+              { en: .72, hacer: function (tl) { cambiarDibujo(P.lobo, "lobo-camina.webp"); caminar(P.lobo, PASO.bosque, null, false, tl); gsap.to(P.lobo, { autoAlpha: 0, duration: 2, delay: 6 }); } }] },
+  { cam: [900, 2330, 660], cielo: "noche",
+    arranque: function () { gsap.to("#luz", { opacity: 1, duration: 4 }); gsap.set(P.lobo, { autoAlpha: 0 }); },
+    efectos: [{ en: .15, hacer: function () { camara(768, 1376, 2752, 26); } }] }
 ];
-
-var bichos = {};
-function mover(id, x, rapido, sinAnimar) {
-  var el = bichos[id];
-  var y = id === "lobo" ? 358 : (id === "ch1" ? 362 : 366);
-  el.classList.toggle("rapido", !!rapido);
-  if (sinAnimar) { el.style.transition = "none"; void el.getBBox(); }
-  var antes = el._x;
-  el.setAttribute("transform", "translate(" + x + " " + y + ")");
-  el.style.transform = "translate(" + x + "px," + y + "px)";
-  el._x = x;
-  if (sinAnimar) { void el.getBBox(); el.style.transition = ""; return; }
-  if (antes !== x) {
-    el.classList.add("camina"); el.classList.remove("respira");
-    clearTimeout(el._t);
-    el._t = setTimeout(function () { el.classList.remove("camina"); el.classList.add("respira"); }, rapido ? 1800 : 3200);
-  }
-}
-function aplicar(e, sinAnimar) {
-  if (e.ch) Object.keys(e.ch).forEach(function (id) { mover(id, e.ch[id], e.rapido, sinAnimar); });
-  if (e.lobo) {
-    if (e.lobo.ver !== undefined) bichos.lobo.classList.toggle("oculto", !e.lobo.ver);
-    else bichos.lobo.classList.remove("oculto");
-    if (e.lobo.x !== undefined) mover("lobo", e.lobo.x, false, sinAnimar);
-  }
-  if (e.sopla !== undefined) bichos.lobo.classList.toggle("soplando", e.sopla);
-  if (e.sentado !== undefined) bichos.lobo.classList.toggle("sentado", e.sentado);
-  if (e.paja) { $("#paja").classList.add("volada"); if (!sinAnimar) $("#briznas").classList.add("volando"); }
-  if (e.palos) $("#palos").classList.add("caida");
-  if (e.dentro !== undefined) {
-    ["ch1", "ch2", "ch3"].forEach(function (id) { bichos[id].classList.toggle("oculto", e.dentro); });
-    $("#caritas").setAttribute("opacity", e.dentro ? 1 : 0);
-  }
-  if (e.sopa !== undefined) $("#sopa").setAttribute("opacity", e.sopa ? 1 : 0);
-  if (e.luz) $("#luzVentana").setAttribute("opacity", 1);
-}
-function cielo(c) {
-  $("#cTarde").setAttribute("opacity", c === "tarde" ? 1 : 0);
-  $("#cNoche").setAttribute("opacity", c === "noche" ? 1 : 0);
-  $("#sol").style.transform = c === "noche" ? "translateY(320px)" : c === "tarde" ? "translateY(90px)" : "";
-  $("#luna").setAttribute("opacity", c === "noche" ? 1 : 0);
-  $("#luna").style.transform = c === "noche" ? "translateY(0)" : "translateY(80px)";
-  svg.classList.toggle("noche", c === "noche");
-}
-function camara(x, sinAnimar) {
-  var m = $("#mundo"), l = $("#lomas");
-  if (sinAnimar) { m.style.transition = l.style.transition = "none"; }
-  m.style.transform = "translateX(" + (-x) + "px)";
-  l.style.transform = "translateX(" + (-x * .4) + "px)";
-  if (sinAnimar) { void svg.getBBox(); m.style.transition = l.style.transition = ""; }
-}
-// Estado inicial y estado final de cada escena, sumando todo lo anterior
-function reiniciarDibujo() {
-  dibujar();
-  ["lobo", "ch1", "ch2", "ch3"].forEach(function (id) { bichos[id] = $("#" + id); bichos[id]._x = null; });
-  mover("ch1", 330, false, true); mover("ch2", 270, false, true); mover("ch3", 390, false, true); mover("lobo", 500, false, true);
-}
-function irSinAnimar(n) {
-  reiniciarDibujo();
+// Saltar a una escena: se arma todo como quedó al final de las anteriores, sin animar
+function irDirecto(n) {
+  gsap.globalTimeline.getChildren(false, true, true).forEach(function (t) { if (!t.vars.repeat) t.kill(); });
+  armar();
+  var tl = gsap.timeline({ paused: true });
   for (var i = 1; i < n; i++) {
-    aplicar(ESCENAS[i].antes, true);
-    (ESCENAS[i].efectos || []).forEach(function (f) { aplicar(f, true); });
+    var e = ESCENAS[i];
+    if (e.arranque) e.arranque(tl);
+    (e.efectos || []).forEach(function (f) { f.hacer(tl); });
   }
-  aplicar(ESCENAS[n].antes, true);
-  camara(ESCENAS[n].cam, true);
-  cielo(ESCENAS[n].cielo);
+  tl.progress(1).kill();
+  gsap.globalTimeline.getChildren(false, true, false).forEach(function (t) { if (!t.vars.repeat) t.progress(1); });
+  cielo(ESCENAS[n].cielo, 0);
+  var c = ESCENAS[n].cam; camara(c[0], c[1], c[2], 0);
 }
 
 /* ---------- narración ---------- */
-var textos = {}, audios = {}, audio = new Audio(), actual = 0, pausado = false, token = 0;
-var synth = window.speechSynthesis;
+var textos = {}, audios = {}, audio = new Audio(), actual = 0, pausado = true, token = 0;
+var synth = window.speechSynthesis, habla = { inicio: 0, dur: 1, pausaDesde: 0 };
+// escena cuya narración ya arrancó: antes de eso, el audio es todavía el de la escena anterior
+var narrando = 0;
 function leerTextos(t) {
   var p = {}, a = null;
   t.split(/\r?\n/).forEach(function (l) {
@@ -352,25 +299,20 @@ var listo = Promise.all([
   fetch("../audio/tres-chanchitos/indice.json").then(function (r) { return r.ok ? r.json() : {}; })
     .then(function (j) { audios = j.paginas || {}; }).catch(function () {})
 ]);
-
 function mostrarTexto(n) {
-  $("#texto").innerHTML = (textos[n] || []).map(function (t) {
-    return "<p>" + t.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</p>";
-  }).join("");
+  $("#texto").innerHTML = (textos[n] || []).map(function (t) { return "<p>" + t.replace(/&/g, "&amp;").replace(/</g, "&lt;") + "</p>"; }).join("");
 }
-// Progreso de la narración (0 a 1): con audio grabado, por el tiempo del audio;
-// con la voz del navegador, por lo que lleva dicho
-var habla = { inicio: 0, dur: 1, pausaDesde: 0 };
 function progreso() {
+  if (narrando !== actual) return 0;
   if (audios[actual]) return audio.duration ? audio.currentTime / audio.duration : 0;
-  var ahora = pausado ? habla.pausaDesde : performance.now();
-  return Math.min(1, (ahora - habla.inicio) / habla.dur);
+  return Math.min(1, ((pausado ? habla.pausaDesde : performance.now()) - habla.inicio) / habla.dur);
 }
 function vozNavegador() {
   var es = synth ? synth.getVoices().filter(function (v) { return /^es/i.test(v.lang); }) : [];
   return es.filter(function (v) { return /paulina|sabina|dalia|elena|helena|laura|valentina|google español/i.test(v.name); })[0] || es[0] || null;
 }
 function narrar(n, t) {
+  narrando = n;
   return new Promise(function (fin) {
     if (audios[n]) {
       audio.src = "../audio/tres-chanchitos/p" + (n < 10 ? "0" : "") + n + ".mp3";
@@ -379,13 +321,13 @@ function narrar(n, t) {
       var p = audio.play(); if (p && p.catch) p.catch(function () {});
       return;
     }
-    var frases = (textos[n] || []), v = vozNavegador(), quedan = frases.length;
+    var frases = textos[n] || [], v = vozNavegador(), quedan = frases.length;
     habla.inicio = performance.now(); habla.dur = Math.max(2000, frases.join(" ").length * 75);
     if (!synth || !quedan) { setTimeout(fin, habla.dur); return; }
     frases.forEach(function (f) {
       var u = new SpeechSynthesisUtterance(f);
       if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "es-419";
-      u.rate = .85; u.pitch = 1;
+      u.rate = .85;
       u.onend = u.onerror = function () { if (--quedan <= 0 && t === token) fin(); };
       synth.speak(u);
     });
@@ -393,79 +335,70 @@ function narrar(n, t) {
 }
 function esperar(ms, t) {
   return new Promise(function (r) {
-    (function mirar() {
-      if (t !== token) return;
-      if (pausado || ms > 0) { if (!pausado) ms -= 100; setTimeout(mirar, 100); } else r();
-    })();
+    (function mirar() { if (t !== token) return; if (pausado || ms > 0) { if (!pausado) ms -= 100; setTimeout(mirar, 100); } else r(); })();
   });
 }
-// Una escena: mueve la cámara, espera que llegue, narra y va disparando los efectos
+function callar() { narrando = 0; audio.onended = audio.onerror = null; audio.pause(); if (synth) synth.cancel(); }
+
+// Una escena: la cámara viaja, pasa lo de la llegada, se narra y van saliendo los efectos
 function escena(n) {
   var t = ++token, e = ESCENAS[n];
   actual = n;
   callar();
-  aplicar(e.antes);
-  camara(e.cam);
-  cielo(e.cielo);
+  var c = e.cam; camara(c[0], c[1], c[2], n === 1 ? 0 : 4.5);
+  cielo(e.cielo, 5);
   mostrarTexto(n);
+  var tl = gsap.timeline();
+  if (e.arranque) e.arranque(tl);
   var pendientes = (e.efectos || []).slice();
   (function efectos() {
     if (t !== token) return;
     var p = progreso();
-    while (pendientes.length && pendientes[0].en <= p) aplicar(pendientes.shift());
+    while (pendientes.length && pendientes[0].en <= p) pendientes.shift().hacer(gsap.timeline());
     requestAnimationFrame(efectos);
   })();
-  return esperar(n === 1 ? 1200 : 3600, t).then(function () { return t === token && narrar(n, t); })
-    .then(function () { if (t !== token) return; pendientes.forEach(function (f) { aplicar(f); }); pendientes = []; })
-    .then(function () { return esperar(2200, t); })
-    .then(function () { if (t === token && n < 10) escena(n + 1); else if (t === token) fin(); });
+  return esperar(n === 1 ? 1500 : 4000, t).then(function () { return t === token && narrar(n, t); })
+    .then(function () { if (t !== token) return; pendientes.forEach(function (f) { f.hacer(gsap.timeline()); }); pendientes = []; })
+    .then(function () { return esperar(2500, t); })
+    .then(function () { if (t !== token) return; if (n < 10) escena(n + 1); else ponerPausa(true, true); });
 }
-function callar() {
-  audio.onended = audio.onerror = null; audio.pause();
-  if (synth) synth.cancel();
-}
-function fin() {
-  ponerPausa(true);
-  $("#texto").innerHTML = "";
-}
-function ponerPausa(si) {
+function ponerPausa(si, terminado) {
   pausado = si;
   $("#pausa").innerHTML = si ? '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z"/></svg>' : '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
   $("#pausa").setAttribute("aria-label", si ? "Seguir" : "Pausar");
+  $("#pausa").dataset.terminado = terminado ? "1" : "";
+  // pausar también frena las animaciones (salvo el humo y la respiración, que siguen tranquilos)
   if (si) { habla.pausaDesde = performance.now(); audio.pause(); if (synth) synth.pause(); }
   else { habla.inicio += performance.now() - (habla.pausaDesde || performance.now()); if (audios[actual] && audio.src && audio.currentTime) audio.play(); if (synth) synth.resume(); }
 }
 function saltar(n) {
   n = Math.max(1, Math.min(10, n));
   token++; callar();
-  irSinAnimar(n);
+  irDirecto(n);
   ponerPausa(false);
   escena(n);
 }
 
 $("#contar").addEventListener("click", function () {
-  // el audio tiene que arrancar dentro del toque (iPad, Chrome)
-  audio.play().catch(function () {}); audio.pause();
+  audio.play().catch(function () {}); audio.pause();   // el audio arranca dentro del toque (iPad, Chrome)
   $("#inicio").classList.add("fuera");
   ponerPausa(false);
   listo.then(function () { escena(1); });
 });
 $("#pausa").addEventListener("click", function () {
   if (!actual) return;
-  if (pausado && actual === 10 && !$("#texto").innerHTML) { saltar(1); return; }   // terminó: empieza de nuevo
+  if (this.dataset.terminado) { saltar(1); return; }
   ponerPausa(!pausado);
 });
 $("#atras").addEventListener("click", function () { if (actual) saltar(actual - 1); });
-// El texto es para el adulto: oculto de entrada para que no tape los dibujos
+$("#adelante").addEventListener("click", function () { if (actual) saltar(actual + 1); });
 $("#verTexto").addEventListener("click", function () {
   var si = document.body.classList.toggle("con-texto");
-  this.setAttribute("aria-label", si ? "Ocultar el texto" : "Mostrar el texto");
-  this.title = this.getAttribute("aria-label");
+  this.setAttribute("aria-label", si ? "Ocultar el texto" : "Mostrar el texto"); this.title = this.getAttribute("aria-label");
 });
-$("#adelante").addEventListener("click", function () { if (actual) saltar(actual + 1); });
 
-reiniciarDibujo();
-camara(0, true); cielo("dia");
+armar();
+camara(768, 1376, 2752, 0);
 ponerPausa(true);
 })();
 </script>
