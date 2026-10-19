@@ -14,7 +14,8 @@
   :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
   html,body{margin:0; height:100%; overflow:hidden; background:#f9eedb; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:none}
-  #vista{position:fixed; inset:0}
+  #vista{position:fixed; inset:0; perspective:900px}
+  #giro{position:absolute; inset:0; transform-style:preserve-3d; will-change:transform}
   #escena{position:absolute; left:0; top:0; width:2048px; height:2048px; transform-origin:0 0}
   #escena img.cara{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
   #cerrado{opacity:0}
@@ -50,10 +51,10 @@
 </style>
 </head>
 <body>
-<div id="vista"><div id="escena">
+<div id="vista"><div id="giro"><div id="escena">
   <img class="cara" id="abierto" src="img/abierto.jpg" alt="">
   <img class="cara" id="cerrado" src="img/cerrado.jpg" alt="">
-</div></div>
+</div></div></div>
 <div id="turno"></div>
 <div id="nam">¡ÑAM!</div>
 <div id="barra">
@@ -142,8 +143,9 @@ var dientes = [], escena = $("#escena"), PASO = 0;
 function acomodar() {
   var vw = innerWidth, vh = innerHeight, arriba = 70;
   // la bandeja con los dientes bien grande; en vertical entra todo el juguete
-  var s = Math.min(vw * .99 / 930, (vh - arriba) * .97 / 720);
-  var cx = 1030, cy = vw < vh ? 1120 : 1280;
+  // con aire a los costados: entra el juguete entero, patitas incluidas
+  var s = Math.min(vw * .94 / 1300, (vh - arriba) * .95 / 820);
+  var cx = 1030, cy = vw < vh ? 1150 : 1260;
   var x = vw / 2 - cx * s, y = arriba + (vh - arriba) / 2 - cy * s;
   // que la cara cubra toda la pantalla (sin franjas vacías)
   if (2048 * s >= vh) y = Math.min(0, Math.max(vh - 2048 * s, y));
@@ -218,6 +220,7 @@ function apretar(i) {
   if (!jugando || esperando || d.apretado) return;
   d.apretado = true; d.el.classList.add("apretado");
   sfx.clic();
+  mirarHacia(d);
   // el diente se hunde en la encía
   gsap.to(d.img, { y: d.img.offsetHeight * .4, scaleY: .85, transformOrigin: "50% 100%", duration: .15, ease: "power2.out" });
   if (i === malo) { nam(); return; }
@@ -233,6 +236,18 @@ function apretar(i) {
     setTimeout(function () { esperando = false; pintarTurno(); decir(enJuego[turno].turno); }, 700);
   }
   pintarTurno();
+}
+// El perrito gira un poco hacia el diente apretado y se acerca, como mostrándole la boca
+// a quien aprieta; después vuelve a su lugar
+function mirarHacia(d) {
+  var r = escena.getBoundingClientRect(), s = r.width / 2048;
+  var px = r.left + d.x * s, py = r.top + d.y * s;
+  var lado = (d.x - U.cx) / U.rx;                // -1 a la izquierda, 1 a la derecha
+  gsap.killTweensOf("#giro");
+  gsap.timeline()
+    .to("#giro", { rotationY: -lado * 24, rotationX: 9, scale: 1.13, x: (innerWidth / 2 - px) * .3,
+                   transformOrigin: px + "px " + py + "px", duration: .35, ease: "power2.out" })
+    .to("#giro", { rotationY: 0, rotationX: 0, scale: 1, x: 0, duration: .7, ease: "power2.inOut" }, "+=.6");
 }
 function nam() {
   jugando = false; esperando = true;
