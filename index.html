@@ -56,12 +56,6 @@
   a.bajar:hover{opacity:1; background:rgba(255,246,231,.12)}
   a.bajar:focus-visible{outline:2px solid var(--amber); outline-offset:2px; opacity:1}
 
-  /* tarjeta del juego: no tiene tapa, se dibuja con color y un emoji grande */
-  .tapa.juego{
-    display:flex; align-items:center; justify-content:center;
-    font-size:clamp(48px,9vw,72px); line-height:1;
-    background:linear-gradient(160deg,#ffd9e8 0%,#ffa9cb 55%,#d4738f 100%);
-  }
 
   footer{
     text-align:center; padding:0 20px calc(40px + env(safe-area-inset-bottom));
@@ -80,21 +74,21 @@
 <main id="estante">
   <div class="libro">
     <a class="abrir" href="personajes/index.html">
-      <div class="tapa juego" aria-hidden="true">🐭</div>
+      <img class="tapa" src="portadas/personajes.jpg" alt="Tapa de Personajes">
       <p class="titulo">Personajes</p>
       <p class="meta">Jugar con Minnie, Mickey, Daisy, Donald, Goofy y Elsa</p>
     </a>
   </div>
   <div class="libro">
     <a class="abrir" href="cerditos/index.html">
-      <div class="tapa juego" aria-hidden="true">🐷</div>
+      <img class="tapa" src="portadas/tres-chanchitos.jpg" alt="Tapa de Los tres chanchitos">
       <p class="titulo">Los tres chanchitos</p>
       <p class="meta">Cuento animado por el sendero, para escuchar</p>
     </a>
   </div>
   <div class="libro">
     <a class="abrir" href="cabritos/index.html">
-      <div class="tapa juego" aria-hidden="true">🐐</div>
+      <img class="tapa" src="portadas/siete-cabritos.jpg" alt="Tapa de El lobo y los siete cabritos">
       <p class="titulo">El lobo y los siete cabritos</p>
       <p class="meta">Cuento animado por el sendero, para escuchar</p>
     </a>
