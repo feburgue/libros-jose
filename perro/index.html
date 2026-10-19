@@ -14,7 +14,7 @@
   :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
   html,body{margin:0; height:100%; overflow:hidden; background:#f9eedb; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:none}
-  #vista{position:fixed; inset:0; perspective:900px}
+  #vista{position:fixed; inset:0; perspective:700px}
   #giro{position:absolute; inset:0; transform-style:preserve-3d; will-change:transform}
   #escena{position:absolute; left:0; top:0; width:2048px; height:2048px; transform-origin:0 0}
   #escena img.cara{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
@@ -140,6 +140,7 @@ var dientes = [], escena = $("#escena"), PASO = 0;
 })();
 
 /* ---------- cámara: la boca bien grande en el centro ---------- */
+var ORIGEN = [0, 0];
 function acomodar() {
   var vw = innerWidth, vh = innerHeight, arriba = 70;
   // la bandeja con los dientes bien grande; en vertical entra todo el juguete
@@ -151,6 +152,8 @@ function acomodar() {
   if (2048 * s >= vh) y = Math.min(0, Math.max(vh - 2048 * s, y));
   if (2048 * s >= vw) x = Math.min(0, Math.max(vw - 2048 * s, x));
   escena.style.transform = "translate(" + x + "px," + y + "px) scale(" + s + ")";
+  // centro de la bandeja en la pantalla: alrededor de ahí gira la cámara
+  ORIGEN = [x + 1035 * s, y + 1240 * s];
 }
 addEventListener("resize", acomodar);
 
@@ -211,6 +214,7 @@ function empezar() {
   puntos = {}; enJuego.forEach(function (j) { puntos[j.id] = 0; });
   turno = 0; malo = Math.floor(Math.random() * dientes.length); esperando = false;
   abrir();
+  angulo = 0; aplicarGiro(.4);
   $("#inicio").classList.add("fuera"); $("#final").classList.add("fuera");
   jugando = true; pintarTurno();
   decir(enJuego.length > 1 ? enJuego[0].turno : 10);
@@ -220,7 +224,6 @@ function apretar(i) {
   if (!jugando || esperando || d.apretado) return;
   d.apretado = true; d.el.classList.add("apretado");
   sfx.clic();
-  mirarHacia(d);
   // el diente se hunde en la encía
   gsap.to(d.img, { y: d.img.offsetHeight * .4, scaleY: .85, transformOrigin: "50% 100%", duration: .15, ease: "power2.out" });
   if (i === malo) { nam(); return; }
@@ -236,18 +239,6 @@ function apretar(i) {
     setTimeout(function () { esperando = false; pintarTurno(); decir(enJuego[turno].turno); }, 700);
   }
   pintarTurno();
-}
-// El perrito gira un poco hacia el diente apretado y se acerca, como mostrándole la boca
-// a quien aprieta; después vuelve a su lugar
-function mirarHacia(d) {
-  var r = escena.getBoundingClientRect(), s = r.width / 2048;
-  var px = r.left + d.x * s, py = r.top + d.y * s;
-  var lado = (d.x - U.cx) / U.rx;                // -1 a la izquierda, 1 a la derecha
-  gsap.killTweensOf("#giro");
-  gsap.timeline()
-    .to("#giro", { rotationY: -lado * 24, rotationX: 9, scale: 1.13, x: (innerWidth / 2 - px) * .3,
-                   transformOrigin: px + "px " + py + "px", duration: .35, ease: "power2.out" })
-    .to("#giro", { rotationY: 0, rotationX: 0, scale: 1, x: 0, duration: .7, ease: "power2.inOut" }, "+=.6");
 }
 function nam() {
   jugando = false; esperando = true;
@@ -296,13 +287,45 @@ function festejo() {
         opacity: 0, duration: 2 + Math.random(), ease: "power2.out", onComplete: (function (el) { return function () { el.remove(); }; })(e) });
   }
 }
-// Toca el diente sin apretar más cercano al dedo (para dedos chiquitos, no hace falta acertarle justo)
-$("#vista").addEventListener("pointerdown", function (ev) {
-  var r = escena.getBoundingClientRect(), s = r.width / 2048;
-  var x = (ev.clientX - r.left) / s, y = (ev.clientY - r.top) / s, mejor = -1, dist = PASO * 1.3;
-  dientes.forEach(function (d, i) { var dd = Math.hypot(d.x - x, d.y - y); if (!d.apretado && dd < dist) { dist = dd; mejor = i; } });
-  if (mejor >= 0) apretar(mejor);
+/* ---------- cámara que gira: deslizando el dedo a los costados ----------
+   Como si la cámara diera la vuelta alrededor del perro: con un costado de frente,
+   esos dientes quedan más grandes y se aprietan mejor. El perro queda girado. */
+var angulo = 0, arrastre = null, MAX = 32;
+function aplicarGiro(dur) {
+  // gira sobre el centro de la bandeja, sin correrse: el costado que queda de frente se agranda
+  gsap.to("#giro", { rotationY: angulo, transformOrigin: ORIGEN[0] + "px " + ORIGEN[1] + "px",
+    duration: dur === undefined ? .25 : dur, ease: "power2.out" });
+}
+// Un toque sin deslizar aprieta el diente más cercano, según cómo se ve ahora (girado o no)
+function dienteEn(x, y) {
+  var mejor = -1, dist = Infinity;
+  dientes.forEach(function (d, i) {
+    if (d.apretado) return;
+    var r = d.el.getBoundingClientRect(), dd = Math.hypot(r.left + r.width / 2 - x, r.top + r.height * .55 - y);
+    if (dd < r.width * 1.4 && dd < dist) { dist = dd; mejor = i; }
+  });
+  return mejor;
+}
+var vista = $("#vista");
+vista.addEventListener("pointerdown", function (ev) {
+  arrastre = { x: ev.clientX, y: ev.clientY, angulo: angulo, movio: false, id: ev.pointerId };
+  try { vista.setPointerCapture(ev.pointerId); } catch (e) {}
 });
+vista.addEventListener("pointermove", function (ev) {
+  if (!arrastre || ev.pointerId !== arrastre.id) return;
+  var dx = ev.clientX - arrastre.x;
+  if (!arrastre.movio && Math.abs(dx) > 14) arrastre.movio = true;
+  if (arrastre.movio) { angulo = Math.max(-MAX, Math.min(MAX, arrastre.angulo + dx * .18)); aplicarGiro(.1); }
+});
+function soltar(ev) {
+  if (!arrastre || ev.pointerId !== arrastre.id) return;
+  var a = arrastre; arrastre = null;
+  if (!a.movio) { var i = dienteEn(a.x, a.y); if (i >= 0) apretar(i); }
+}
+vista.addEventListener("pointerup", soltar);
+vista.addEventListener("pointercancel", function () { arrastre = null; });
+addEventListener("resize", function () { aplicarGiro(0); });
+
 $("#jugar").addEventListener("click", empezar);
 $("#otraVez").addEventListener("click", function () { $("#final").classList.add("fuera"); $("#inicio").classList.remove("fuera"); abrir(); pintarQuienes(); });
 $("#sonido").addEventListener("click", function () {
