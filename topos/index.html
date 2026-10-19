@@ -75,8 +75,8 @@ var $ = function (s) { return document.querySelector(s); };
 /* ---------- ajustes ---------- */
 var RONDA = 40;                       // cuántas veces sale un topo (o sorpresa) por partida
 var VELOCIDADES = {
-  tranquilo: { arriba: 3000, pausa: 1500, icono: "🐢", nombre: "tranquilo" },
-  rapido:    { arriba: 2000, pausa: 1000, icono: "🐇", nombre: "un poco más rápido" }
+  tranquilo: { arriba: 1100, pausa: 500, icono: "🐢", nombre: "tranquilo" },
+  rapido:    { arriba: 800, pausa: 350, icono: "🐇", nombre: "un poco más rápido" }
 };
 var store = {
   get: function (k, d) { try { var v = localStorage.getItem("topos." + k); return v === null ? d : v; } catch (e) { return d; } },
@@ -196,18 +196,18 @@ function salir() {
   p.bicho.classList.toggle("dorado", false);
   sfx.pop();
   if (t.frase) decir(t.frase);
-  gsap.fromTo(p.bicho, { yPercent: 110 }, { yPercent: 0, duration: .5, ease: "back.out(1.6)" });
+  gsap.fromTo(p.bicho, { yPercent: 110 }, { yPercent: 0, duration: .3, ease: "back.out(1.6)" });
   // mira para los costados mientras está afuera
-  gsap.to(p.bicho, { rotation: 4, duration: .8, yoyo: true, repeat: 3, ease: "sine.inOut", delay: .5, transformOrigin: "50% 100%" });
+  gsap.to(p.bicho, { rotation: 4, duration: .3, yoyo: true, repeat: 3, ease: "sine.inOut", delay: .5, transformOrigin: "50% 100%" });
   p.timer = despues(v().arriba * ajuste, function () { escapar(p); });
   // a veces, ya avanzada la partida, sale otro al mismo tiempo (nunca más de dos)
   var arriba = POZOS.filter(function (q) { return q.arriba; }).length;
-  var proximo = v().pausa * ajuste + v().arriba * ajuste * (salidas > 12 && arriba < 2 && Math.random() < .3 ? .45 : 1);
+  var proximo = v().pausa * ajuste + v().arriba * ajuste * (salidas > 5 && arriba < 2 && Math.random() < .35 ? .45 : 1);
   despues(proximo, salir);
 }
 function esconder(p, demora) {
   gsap.killTweensOf(p.bicho);
-  gsap.to(p.bicho, { yPercent: 110, rotation: 0, duration: .45, ease: "power2.in", delay: demora || 0,
+  gsap.to(p.bicho, { yPercent: 110, rotation: 0, duration: .3, ease: "power2.in", delay: demora || 0,
     onComplete: function () { p.arriba = false; if (jugando && salidas >= RONDA && !POZOS.some(function (q) { return q.arriba; })) terminar(); } });
 }
 function escapar(p) {
@@ -216,7 +216,7 @@ function escapar(p) {
   // se ríe y saca la lengua, y se esconde (nunca pasa nada malo)
   if (p.tipo === "topo") p.bicho.src = "img/topo-rie.webp";
   sfx.risita();
-  esconder(p, .7);
+  esconder(p, .35);
 }
 function golpear(p, x, y) {
   p.golpeado = true; clearTimeout(p.timer); ajustar(true);
@@ -226,7 +226,7 @@ function golpear(p, x, y) {
   sfx.boing();
   gsap.fromTo(p.bicho, { scaleY: .85, transformOrigin: "50% 100%" }, { scaleY: 1, duration: .4, ease: "elastic.out(1,.4)" });
   sumar(t.vale, x, y);
-  esconder(p, .9);
+  esconder(p, .5);
 }
 function sumar(n, x, y) {
   var antes = puntos; puntos += n;
@@ -278,7 +278,7 @@ function empezar() {
   $("#inicio").classList.add("fuera"); $("#final").classList.add("fuera");
   jugando = true;
   decir(1);
-  despues(1800, salir);
+  despues(1200, salir);
 }
 function terminar() {
   if (!jugando) return;
