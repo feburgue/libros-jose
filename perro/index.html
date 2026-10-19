@@ -6,22 +6,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#2a1a0f">
 <link rel="shortcut icon" type="image/png" href="../favicon.ico">
-<!-- Perrito y diente pintados con Nano Banana (Gemini) a partir de textos de Claude;
+<!-- Perrito de juguete y diente pintados con Nano Banana (Gemini) a partir de textos de Claude;
      animación con GSAP 3.12.5 (cerditos/lib). -->
 <script src="../cerditos/lib/gsap.min.js"></script>
 <script src="../lib/despierto.js"></script>
 <style>
   :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
-  html,body{margin:0; height:100%; overflow:hidden; background:#fbf1de; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  html,body{margin:0; height:100%; overflow:hidden; background:#f9eedb; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:none}
   #vista{position:fixed; inset:0}
   #escena{position:absolute; left:0; top:0; width:2048px; height:2048px; transform-origin:0 0}
   #escena img.cara{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
   #cerrado{opacity:0}
-  .diente{position:absolute; cursor:pointer}
+  .diente{position:absolute; pointer-events:none}
   .diente img{position:absolute; left:0; width:100%; pointer-events:none; filter:drop-shadow(0 3px 2px rgba(80,20,20,.35))}
   .diente.arriba img{top:0; transform:scaleY(-1)}
   .diente.abajo img{bottom:0}
+  .diente img{filter:drop-shadow(0 4px 3px rgba(70,10,10,.35))}
   .diente.apretado img{filter:brightness(.88) drop-shadow(0 1px 1px rgba(80,20,20,.3))}
   #turno{position:fixed; top:max(10px, env(safe-area-inset-top)); left:12px; z-index:3; display:flex; gap:8px; flex-wrap:wrap; max-width:calc(100% - 130px)}
   .jug{background:rgba(255,248,236,.92); color:var(--tinta); border-radius:30px; padding:6px 14px; font:bold 20px/1 Georgia,serif;
@@ -105,34 +106,44 @@ function pintarQuienes() {
 }
 
 /* ---------- los dientes ----------
-   En coordenadas del dibujo (2048 x 2048): 8 cuelgan de la encía de arriba y 7 se
-   paran en la de abajo, siguiendo la curva de la boca. */
-var ARRIBA = { desde: [690, 1088], hasta: [1375, 1088], centro: 1118, n: 8 };
-var ABAJO = { desde: [775, 1555], hasta: [1290, 1555], centro: 1625, n: 7 };
-var dientes = [], escena = $("#escena");
-function fila(f, lado) {
-  var paso = (f.hasta[0] - f.desde[0]) / f.n, ancho = paso * .96, alto = ancho * 1.1;
-  for (var i = 0; i < f.n; i++) {
-    var x = f.desde[0] + paso * (i + .5), t = (i + .5) / f.n;
-    var y = f.desde[1] + (f.centro - f.desde[1]) * 4 * t * (1 - t);   // la encía es curva
-    var d = document.createElement("div"); d.className = "diente " + lado;
+   Como en el juguete: los 15 están en la bandeja roja de abajo, parados sobre el
+   borde en forma de U (media elipse, en coordenadas del dibujo de 2048 x 2048).
+   Con perspectiva: los de adelante más grandes, los del fondo más chicos. */
+var U = { cx: 1035, cy: 1240, rx: 438, ry: 268, desde: 177, hasta: 3 }, CANTIDAD = 15;
+var dientes = [], escena = $("#escena"), PASO = 0;
+(function () {
+  var muestras = [], total = 0, ant = null;
+  for (var k = 0; k <= 600; k++) {
+    var ang = (U.desde + (U.hasta - U.desde) * k / 600) * Math.PI / 180;
+    var p = [U.cx + U.rx * Math.cos(ang), U.cy + U.ry * Math.sin(ang)];
+    var f = .62 + .38 * Math.max(0, Math.sin(ang));          // 1 adelante, .62 al fondo
+    if (ant) total += Math.hypot(p[0] - ant.p[0], p[1] - ant.p[1]) / f;
+    muestras.push({ p: p, l: total, f: f }); ant = { p: p };
+  }
+  var cada = total / CANTIDAD;
+  PASO = 0;
+  for (var i = 0; i < CANTIDAD; i++) {
+    var meta = cada * (i + .5), m = muestras.find(function (q) { return q.l >= meta; }) || muestras[muestras.length - 1];
+    var ancho = cada * m.f * .97, alto = ancho * 1.5;   // altos, como las piezas del juguete
+    PASO = Math.max(PASO, cada * m.f);
+    var x = m.p[0], y = m.p[1] + 10;
+    var d = document.createElement("div"); d.className = "diente abajo";
     d.innerHTML = '<img src="img/diente.webp" alt="">';
     d.style.left = (x - ancho / 2) + "px"; d.style.width = ancho + "px";
-    // la zona para tocar es más alta que el diente, para dedos chiquitos
-    if (lado === "arriba") { d.style.top = y + "px"; d.style.height = alto * 1.5 + "px"; }
-    else { d.style.top = (y - alto * 1.5) + "px"; d.style.height = alto * 1.5 + "px"; }
+    d.style.top = (y - alto) + "px"; d.style.height = alto + "px";
+    d.style.zIndex = Math.round(y);          // los de adelante tapan a los de atrás
     d.querySelector("img").style.height = alto + "px";
     escena.appendChild(d);
-    dientes.push({ el: d, img: d.querySelector("img"), lado: lado, apretado: false });
+    dientes.push({ el: d, img: d.querySelector("img"), lado: "abajo", apretado: false, x: x, y: y - alto / 2 });
   }
-}
-fila(ARRIBA, "arriba"); fila(ABAJO, "abajo");
+})();
 
 /* ---------- cámara: la boca bien grande en el centro ---------- */
 function acomodar() {
   var vw = innerWidth, vh = innerHeight, arriba = 70;
-  var s = Math.min(vw * .98 / 900, (vh - arriba) * .96 / 700);
-  var cx = 1032, cy = 1370;
+  // la bandeja con los dientes bien grande; en vertical entra todo el juguete
+  var s = Math.min(vw * .99 / 930, (vh - arriba) * .97 / 720);
+  var cx = 1030, cy = vw < vh ? 1120 : 1280;
   var x = vw / 2 - cx * s, y = arriba + (vh - arriba) / 2 - cy * s;
   // que la cara cubra toda la pantalla (sin franjas vacías)
   if (2048 * s >= vh) y = Math.min(0, Math.max(vh - 2048 * s, y));
@@ -190,7 +201,7 @@ function pintarTurno() {
 }
 function abrir() {
   gsap.set("#cerrado", { opacity: 0 }); gsap.set("#abierto", { opacity: 1 });
-  dientes.forEach(function (d) { d.apretado = false; d.el.classList.remove("apretado"); gsap.set(d.img, { y: 0, opacity: 1 }); });
+  dientes.forEach(function (d) { d.apretado = false; d.el.classList.remove("apretado"); gsap.set(d.img, { y: 0, scaleY: 1, opacity: 1 }); });
 }
 function empezar() {
   audioCtx();
@@ -208,7 +219,7 @@ function apretar(i) {
   d.apretado = true; d.el.classList.add("apretado");
   sfx.clic();
   // el diente se hunde en la encía
-  gsap.to(d.img, { y: d.lado === "arriba" ? -d.img.offsetHeight * .35 : d.img.offsetHeight * .35, duration: .15, ease: "power2.out" });
+  gsap.to(d.img, { y: d.img.offsetHeight * .4, scaleY: .85, transformOrigin: "50% 100%", duration: .15, ease: "power2.out" });
   if (i === malo) { nam(); return; }
   var j = enJuego[turno];
   puntos[j.id]++;
@@ -270,7 +281,13 @@ function festejo() {
         opacity: 0, duration: 2 + Math.random(), ease: "power2.out", onComplete: (function (el) { return function () { el.remove(); }; })(e) });
   }
 }
-dientes.forEach(function (d, i) { d.el.addEventListener("pointerdown", function () { apretar(i); }); });
+// Toca el diente sin apretar más cercano al dedo (para dedos chiquitos, no hace falta acertarle justo)
+$("#vista").addEventListener("pointerdown", function (ev) {
+  var r = escena.getBoundingClientRect(), s = r.width / 2048;
+  var x = (ev.clientX - r.left) / s, y = (ev.clientY - r.top) / s, mejor = -1, dist = PASO * 1.3;
+  dientes.forEach(function (d, i) { var dd = Math.hypot(d.x - x, d.y - y); if (!d.apretado && dd < dist) { dist = dd; mejor = i; } });
+  if (mejor >= 0) apretar(mejor);
+});
 $("#jugar").addEventListener("click", empezar);
 $("#otraVez").addEventListener("click", function () { $("#final").classList.add("fuera"); $("#inicio").classList.remove("fuera"); abrir(); pintarQuienes(); });
 $("#sonido").addEventListener("click", function () {
