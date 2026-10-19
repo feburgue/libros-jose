@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>¡A pegarle al topo!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#2a1a0f">
+<link rel="shortcut icon" type="image/png" href="../favicon.ico">
+<!-- Jardín, topos, conejito y martillo pintados con Nano Banana (Gemini) a partir de
+     textos de Claude; animación con GSAP 3.12.5 (cerditos/lib). -->
+<script src="../cerditos/lib/gsap.min.js"></script>
+<script src="../lib/despierto.js"></script>
+<style>
+  :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
+  html,body{margin:0; height:100%; overflow:hidden; background:#9cc77a url(img/fondo-h.jpg) center/cover no-repeat;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-tap-highlight-color:transparent;
+    -webkit-user-select:none; user-select:none; touch-action:none}
+  @media (orientation:portrait){ html,body{background-image:url(img/fondo-v.jpg)} }
+  #tablero{position:fixed; inset:0}
+  .pozo{position:absolute}
+  .pozo img{position:absolute; display:block; pointer-events:none; -webkit-user-drag:none}
+  /* el topo sale por una "ventana" que termina en el borde de abajo del agujero */
+  .ventana{position:absolute; overflow:hidden; pointer-events:none}
+  .ventana img{position:absolute; left:0; bottom:0; width:100%; will-change:transform}
+  .dorado{filter:sepia(1) saturate(3.5) hue-rotate(-12deg) brightness(1.08)}
+  #martillo{position:fixed; left:0; top:0; width:120px; pointer-events:none; opacity:0; transform-origin:85% 85%; z-index:5}
+  .estrellita{position:fixed; font-size:34px; pointer-events:none; z-index:4}
+  .papelito{position:fixed; width:12px; height:18px; border-radius:3px; pointer-events:none; z-index:4}
+  #puntos{position:fixed; top:max(10px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:3;
+    background:rgba(255,248,236,.92); color:var(--tinta); border-radius:40px; padding:6px 22px 6px 14px;
+    font:bold 34px/1 Georgia,serif; display:flex; align-items:center; gap:10px; box-shadow:0 4px 14px rgba(0,0,0,.2)}
+  #puntos .e{font-size:32px}
+  #barra{position:fixed; top:max(10px, env(safe-area-inset-top)); right:12px; display:flex; gap:8px; z-index:3}
+  #barra button, #barra a{all:unset; cursor:pointer; width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+    background:rgba(42,26,15,.5); color:var(--crema); font-size:22px; backdrop-filter:blur(6px)}
+  #barra svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  .cartel{position:fixed; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.35); z-index:6; transition:opacity .6s}
+  .cartel.fuera{opacity:0; pointer-events:none}
+  .cartel .caja{text-align:center; color:var(--crema); padding:0 16px}
+  .cartel h1{margin:0 0 10px; font:bold clamp(30px,6vw,58px)/1.1 Georgia,serif; text-shadow:0 3px 14px rgba(0,0,0,.55)}
+  .cartel p{margin:0 0 20px; font:600 clamp(18px,3.4vw,28px)/1.3 Georgia,serif; text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .cartel button{all:unset; cursor:pointer; background:var(--ambar); color:var(--tinta); font:600 24px/1 system-ui,sans-serif;
+    padding:20px 36px; border-radius:50px; box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  /* celular vertical: el contador va a la izquierda para no pisar los botones */
+  @media (max-width:520px){ #puntos{left:12px; transform:none; font-size:28px; padding:5px 16px 5px 10px} }
+  .cartel img{width:min(42vw,220px); display:block; margin:0 auto 6px}
+</style>
+</head>
+<body>
+<div id="tablero"></div>
+<img id="martillo" src="img/martillo.webp" alt="">
+<div id="puntos" aria-live="polite"><span class="e">⭐</span><span id="n">0</span></div>
+<div id="barra">
+  <a href="../index.html" aria-label="Volver a los libros" title="Todos los libros"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
+  <button id="velocidad" aria-label="Velocidad: tranquilo" title="Velocidad">🐢</button>
+  <button id="sonido" aria-label="Sonido prendido" title="Sonido">🔊</button>
+</div>
+<div class="cartel" id="inicio"><div class="caja">
+  <img src="img/topo.webp" alt="">
+  <h1>¡A pegarle al topo!</h1>
+  <button id="jugar">▶ Jugar</button>
+</div></div>
+<div class="cartel fuera" id="final"><div class="caja">
+  <img src="img/topo-rie.webp" alt="">
+  <h1 id="finalTitulo">¡Muy bien!</h1>
+  <p id="finalTexto"></p>
+  <button id="otraVez">▶ Jugar de nuevo</button>
+</div></div>
+
+<script>
+(function () {
+"use strict";
+var $ = function (s) { return document.querySelector(s); };
+
+/* ---------- ajustes ---------- */
+var RONDA = 40;                       // cuántas veces sale un topo (o sorpresa) por partida
+var VELOCIDADES = {
+  tranquilo: { arriba: 3000, pausa: 1500, icono: "🐢", nombre: "tranquilo" },
+  rapido:    { arriba: 2000, pausa: 1000, icono: "🐇", nombre: "un poco más rápido" }
+};
+var store = {
+  get: function (k, d) { try { var v = localStorage.getItem("topos." + k); return v === null ? d : v; } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem("topos." + k, v); } catch (e) {} }
+};
+var velocidad = store.get("velocidad", "tranquilo"), conSonido = store.get("sonido", "1") === "1";
+// el nombre que se puso en la app de personajes (mismo sitio)
+var nombre = (function () { try { return localStorage.getItem("minnie.name") || "Josefina"; } catch (e) { return "Josefina"; } })();
+
+/* ---------- los pozos ----------
+   Medidas relativas al ancho del pozo (W): la boca del agujero es una elipse centrada
+   a 0,216 W de arriba, y su borde de abajo está a 0,313 W. */
+var POZOS = [], tablero = $("#tablero");
+for (var i = 0; i < 9; i++) {
+  var d = document.createElement("div"); d.className = "pozo";
+  d.innerHTML = '<img class="atras" src="img/pozo.webp" alt="">' +
+    '<div class="ventana"><img class="bicho" src="img/topo.webp" alt=""></div>' +
+    '<img class="frente" src="img/pozo-frente.webp" alt="">';
+  tablero.appendChild(d);
+  POZOS.push({ el: d, bicho: d.querySelector(".bicho"), ventana: d.querySelector(".ventana"), arriba: false, tipo: null, golpeado: false });
+}
+function acomodar() {
+  var vw = innerWidth, vh = innerHeight, arriba = 80, margen = 8;
+  var cw = (vw - margen * 2) / 3, ch = (vh - arriba - margen) / 3;
+  var W = Math.min(cw * .92, ch / .74);
+  POZOS.forEach(function (p, i) {
+    var col = i % 3, fila = Math.floor(i / 3);
+    var cx = margen + cw * (col + .5), base = arriba + ch * fila + ch * .66;   // borde de abajo del agujero
+    var alto = W * 448 / 870;
+    p.W = W;
+    p.el.style.left = (cx - W / 2) + "px"; p.el.style.top = (base - W * .313) + "px";
+    p.el.style.width = W + "px"; p.el.style.height = alto + "px";
+    p.el.querySelectorAll(".atras, .frente").forEach(function (im) { im.style.width = W + "px"; im.style.left = 0; im.style.top = 0; });
+    // la ventana: del ancho del pozo, termina justo en el borde de abajo del agujero
+    var vH = W * .9;
+    p.ventana.style.width = W * .96 + "px"; p.ventana.style.left = W * .02 + "px";
+    p.ventana.style.height = vH + "px"; p.ventana.style.top = (W * .313 - vH) + "px";
+    // el bicho, un poco más abajo del borde para que no se vea el corte recto
+    p.bicho.style.width = W * .86 + "px"; p.bicho.style.left = W * .05 + "px"; p.bicho.style.bottom = (-W * .04) + "px";
+    p.zona = { x: cx - cw / 2, y: arriba + ch * fila, w: cw, h: ch };
+    if (!p.arriba) gsap.set(p.bicho, { yPercent: 110 });
+  });
+}
+addEventListener("resize", acomodar);
+
+/* ---------- sonidos (sintetizados, sin archivos) ---------- */
+var ctx = null;
+function audioCtx() { try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); } catch (e) {} return ctx; }
+function tono(f0, f1, dur, tipo, vol, cuando) {
+  var c = audioCtx(); if (!c || !conSonido) return;
+  var t = c.currentTime + (cuando || 0), o = c.createOscillator(), g = c.createGain();
+  o.type = tipo || "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol || .2, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .02);
+}
+var sfx = {
+  pop: function () { tono(300, 700, .12, "sine", .15); },
+  boing: function () { tono(180, 520, .35, "triangle", .3); tono(520, 260, .25, "sine", .12, .2); },
+  pum: function () { tono(140, 60, .15, "sine", .3); },
+  risita: function () { [0, .11, .22].forEach(function (d, k) { tono(900 - k * 80, 1100 - k * 80, .08, "square", .05, d); }); },
+  festejo: function () { [523, 659, 784, 1046].forEach(function (f, k) { tono(f, f, .18, "triangle", .15, k * .12); }); }
+};
+
+/* ---------- frases (grabadas con Gemini si están; si no, la voz del navegador) ---------- */
+var frases = {}, audios = {}, voz = new Audio();
+fetch("../textos/topos.txt").then(function (r) { return r.text(); }).then(function (t) {
+  var a = null;
+  t.split(/\r?\n/).forEach(function (l) {
+    var m = l.match(/^==\s*(\d+)\s*$/);
+    if (m) { a = +m[1]; frases[a] = ""; return; }
+    if (a !== null && l.trim() && !/^#/.test(l)) frases[a] += l.trim() + " ";
+  });
+}).catch(function () {});
+fetch("../audio/topos/indice.json").then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) { audios = j.paginas || {}; }).catch(function () {});
+function decir(n) {
+  if (!conSonido) return;
+  if (audios[n]) { voz.src = "../audio/topos/p0" + n + ".mp3"; voz.play().catch(function () {}); return; }
+  var s = window.speechSynthesis; if (!s || !frases[n]) return;
+  s.cancel();
+  var u = new SpeechSynthesisUtterance(frases[n].replace(/Josefina/g, nombre));
+  var es = s.getVoices().filter(function (v) { return /^es/i.test(v.lang); });
+  var v = es.filter(function (v) { return /paulina|sabina|dalia|elena|helena|laura|valentina|google español/i.test(v.name); })[0] || es[0];
+  if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "es-419";
+  u.rate = .95; u.pitch = 1.15; s.speak(u);
+}
+
+/* ---------- el juego ---------- */
+var puntos = 0, salidas = 0, jugando = false, resultados = [], ajuste = 1, timers = [];
+function despues(ms, fn) { var t = setTimeout(fn, ms); timers.push(t); return t; }
+function v() { return VELOCIDADES[velocidad]; }
+// Se ajusta sola, despacito: si le pega a casi todos, un poquito más rápido; si se le escapan, más lento
+function ajustar(acerto) {
+  resultados.push(acerto); if (resultados.length > 6) resultados.shift();
+  if (resultados.length < 6) return;
+  var bien = resultados.filter(Boolean).length;
+  if (bien >= 5) ajuste = Math.max(.75, ajuste - .05);
+  if (bien <= 2) ajuste = Math.min(1.2, ajuste + .05);
+}
+var TIPOS = {
+  topo:   { normal: "topo.webp", golpe: "topo-mareado.webp", vale: 1 },
+  dorado: { normal: "topo-dorado.webp", golpe: "topo-mareado.webp", vale: 2, dorado: true, frase: 6 },
+  conejo: { normal: "conejo.webp", golpe: "conejo-mareado.webp", vale: 2, frase: 7 }
+};
+function sortear() {
+  var r = Math.random();
+  return r < .07 ? "dorado" : r < .14 ? "conejo" : "topo";
+}
+function salir() {
+  if (!jugando) return;
+  if (salidas >= RONDA) { if (!POZOS.some(function (p) { return p.arriba; })) terminar(); return; }
+  var libres = POZOS.filter(function (p) { return !p.arriba; });
+  if (!libres.length) { despues(400, salir); return; }
+  var p = libres[Math.floor(Math.random() * libres.length)], tipo = sortear(), t = TIPOS[tipo];
+  salidas++;
+  p.arriba = true; p.golpeado = false; p.tipo = tipo;
+  p.bicho.src = "img/" + t.normal;
+  p.bicho.classList.toggle("dorado", false);
+  sfx.pop();
+  if (t.frase) decir(t.frase);
+  gsap.fromTo(p.bicho, { yPercent: 110 }, { yPercent: 0, duration: .5, ease: "back.out(1.6)" });
+  // mira para los costados mientras está afuera
+  gsap.to(p.bicho, { rotation: 4, duration: .8, yoyo: true, repeat: 3, ease: "sine.inOut", delay: .5, transformOrigin: "50% 100%" });
+  p.timer = despues(v().arriba * ajuste, function () { escapar(p); });
+  // a veces, ya avanzada la partida, sale otro al mismo tiempo (nunca más de dos)
+  var arriba = POZOS.filter(function (q) { return q.arriba; }).length;
+  var proximo = v().pausa * ajuste + v().arriba * ajuste * (salidas > 12 && arriba < 2 && Math.random() < .3 ? .45 : 1);
+  despues(proximo, salir);
+}
+function esconder(p, demora) {
+  gsap.killTweensOf(p.bicho);
+  gsap.to(p.bicho, { yPercent: 110, rotation: 0, duration: .45, ease: "power2.in", delay: demora || 0,
+    onComplete: function () { p.arriba = false; if (jugando && salidas >= RONDA && !POZOS.some(function (q) { return q.arriba; })) terminar(); } });
+}
+function escapar(p) {
+  if (!p.arriba || p.golpeado) return;
+  ajustar(false);
+  // se ríe y saca la lengua, y se esconde (nunca pasa nada malo)
+  if (p.tipo === "topo") p.bicho.src = "img/topo-rie.webp";
+  sfx.risita();
+  esconder(p, .7);
+}
+function golpear(p, x, y) {
+  p.golpeado = true; clearTimeout(p.timer); ajustar(true);
+  var t = TIPOS[p.tipo];
+  p.bicho.src = "img/" + t.golpe;
+  p.bicho.classList.toggle("dorado", !!t.dorado);
+  sfx.boing();
+  gsap.fromTo(p.bicho, { scaleY: .85, transformOrigin: "50% 100%" }, { scaleY: 1, duration: .4, ease: "elastic.out(1,.4)" });
+  sumar(t.vale, x, y);
+  esconder(p, .9);
+}
+function sumar(n, x, y) {
+  var antes = puntos; puntos += n;
+  $("#n").textContent = puntos;
+  gsap.fromTo("#puntos", { scale: 1.25 }, { scale: 1, duration: .4, ease: "back.out(2)", clearProps: "scale" });
+  for (var k = 0; k < n; k++) volar("⭐", x, y, k * .12);
+  // cada 5 puntos, un festejo
+  if (Math.floor(puntos / 5) > Math.floor(antes / 5)) { festejo(); decir([2, 3, 4, 5][Math.floor(Math.random() * 4)]); }
+}
+function volar(txt, x, y, demora) {
+  var e = document.createElement("div"); e.className = "estrellita"; e.textContent = txt; document.body.appendChild(e);
+  var destino = $("#puntos").getBoundingClientRect();
+  gsap.fromTo(e, { x: x - 17, y: y - 40, scale: .6, opacity: 1 },
+    { x: destino.left + 20, y: destino.top, scale: 1.1, duration: .9, delay: demora, ease: "power2.in", onComplete: function () { e.remove(); } });
+}
+function festejo() {
+  sfx.festejo();
+  var colores = ["#f6c945", "#f28fb0", "#7cc4f2", "#9be08a", "#c7a3f0", "#f2a567"];
+  for (var k = 0; k < 40; k++) {
+    var e = document.createElement("div"); e.className = "papelito"; e.style.background = colores[k % colores.length]; document.body.appendChild(e);
+    var x0 = innerWidth / 2;
+    gsap.fromTo(e, { x: x0, y: innerHeight * .35, rotation: 0, opacity: 1 },
+      { x: x0 + (Math.random() - .5) * innerWidth, y: innerHeight * (.1 + Math.random() * .9), rotation: Math.random() * 720,
+        opacity: 0, duration: 1.8 + Math.random(), ease: "power2.out", onComplete: (function (el) { return function () { el.remove(); }; })(e) });
+  }
+}
+
+/* ---------- el martillo: aparece donde toca y hace "¡pum!" ---------- */
+var martillo = $("#martillo");
+function tocar(ev) {
+  if (!jugando) return;
+  var x = ev.clientX, y = ev.clientY, mw = Math.min(140, Math.max(90, innerWidth * .16));
+  martillo.style.width = mw + "px";
+  gsap.killTweensOf(martillo);
+  gsap.set(martillo, { x: x - mw * .3, y: y - mw * .95, rotation: -35, opacity: 1 });
+  gsap.to(martillo, { rotation: 15, duration: .12, ease: "power2.in" });
+  gsap.to(martillo, { opacity: 0, duration: .3, delay: .35 });
+  // ¿le pegó a alguno? (toda la casilla cuenta, para que sea fácil con dedos chiquitos)
+  var p = POZOS.filter(function (q) { var z = q.zona; return q.arriba && !q.golpeado && x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h; })[0];
+  if (p) golpear(p, x, y); else sfx.pum();
+}
+tablero.addEventListener("pointerdown", tocar);
+
+function empezar() {
+  audioCtx();
+  timers.forEach(clearTimeout); timers = [];
+  puntos = 0; salidas = 0; resultados = []; ajuste = 1; $("#n").textContent = 0;
+  POZOS.forEach(function (p) { gsap.killTweensOf(p.bicho); p.arriba = false; gsap.set(p.bicho, { yPercent: 110 }); });
+  $("#inicio").classList.add("fuera"); $("#final").classList.add("fuera");
+  jugando = true;
+  decir(1);
+  despues(1800, salir);
+}
+function terminar() {
+  if (!jugando) return;
+  jugando = false;
+  festejo(); decir(8);
+  $("#finalTitulo").textContent = "¡Muy bien, " + nombre + "!";
+  $("#finalTexto").textContent = "Atrapaste " + puntos + (puntos === 1 ? " estrella" : " estrellas") + " ⭐";
+  setTimeout(function () { $("#final").classList.remove("fuera"); }, 1200);
+}
+$("#jugar").addEventListener("click", empezar);
+$("#otraVez").addEventListener("click", empezar);
+
+/* ---------- botones para el adulto ---------- */
+function mostrarAjustes() {
+  $("#velocidad").textContent = v().icono;
+  $("#velocidad").setAttribute("aria-label", "Velocidad: " + v().nombre); $("#velocidad").title = "Velocidad: " + v().nombre;
+  $("#sonido").textContent = conSonido ? "🔊" : "🔇";
+  $("#sonido").setAttribute("aria-label", conSonido ? "Sonido prendido" : "Sonido apagado");
+}
+$("#velocidad").addEventListener("click", function () {
+  velocidad = velocidad === "tranquilo" ? "rapido" : "tranquilo"; store.set("velocidad", velocidad); mostrarAjustes();
+});
+$("#sonido").addEventListener("click", function () {
+  conSonido = !conSonido; store.set("sonido", conSonido ? "1" : "0"); if (!conSonido && window.speechSynthesis) speechSynthesis.cancel(); mostrarAjustes();
+});
+// que los botones no cuenten como martillazos
+$("#barra").addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+
+acomodar();
+mostrarAjustes();
+})();
+</script>
+</body>
+</html>

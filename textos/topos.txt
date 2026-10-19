@@ -1,0 +1,26 @@
+# ¡A pegarle al topo! — frases del juego (topos/index.html)
+# Una sección por frase. Se pueden corregir a mano y volver a grabar.
+
+== 1
+¡Vamos a jugar! ¡Pegale a los topos con el martillo!
+
+== 2
+¡Muy bien!
+
+== 3
+¡Bravo, Josefina!
+
+== 4
+¡Qué rápida que sos!
+
+== 5
+¡Genial! ¡Seguí así!
+
+== 6
+¡Un topo dorado! ¡Vale doble!
+
+== 7
+¡Un conejito! ¡Vale doble!
+
+== 8
+¡Terminaste! ¡Lo hiciste muy, muy bien!
