@@ -90,7 +90,8 @@ var nombre = (function () { try { return localStorage.getItem("minnie.name") || 
    Medidas relativas al ancho del pozo (W): la boca del agujero es una elipse centrada
    a 0,216 W de arriba, y su borde de abajo está a 0,313 W. */
 var POZOS = [], tablero = $("#tablero");
-for (var i = 0; i < 9; i++) {
+var CANTIDAD = 15;   // apaisado: 5 x 3; vertical: 3 x 5
+for (var i = 0; i < CANTIDAD; i++) {
   var d = document.createElement("div"); d.className = "pozo";
   d.innerHTML = '<img class="atras" src="img/pozo.webp" alt="">' +
     '<div class="ventana"><img class="bicho" src="img/topo.webp" alt=""></div>' +
@@ -100,10 +101,11 @@ for (var i = 0; i < 9; i++) {
 }
 function acomodar() {
   var vw = innerWidth, vh = innerHeight, arriba = 80, margen = 8;
-  var cw = (vw - margen * 2) / 3, ch = (vh - arriba - margen) / 3;
+  var apaisado = vw >= vh, cols = apaisado ? 5 : 3, filas = apaisado ? 3 : 5;
+  var cw = (vw - margen * 2) / cols, ch = (vh - arriba - margen) / filas;
   var W = Math.min(cw * .92, ch / .74);
   POZOS.forEach(function (p, i) {
-    var col = i % 3, fila = Math.floor(i / 3);
+    var col = i % cols, fila = Math.floor(i / cols);
     var cx = margen + cw * (col + .5), base = arriba + ch * fila + ch * .66;   // borde de abajo del agujero
     var alto = W * 448 / 870;
     p.W = W;
