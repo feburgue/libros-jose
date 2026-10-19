@@ -32,6 +32,7 @@ PLANTILLA = """<!DOCTYPE html>
 <script src="./pdfjs-dist/build/pdf.min.js"></script>
 <script src="./lib/page-flip.browser.js"></script>
 <script src="./lib/visor.js"></script>
+<script src="./lib/despierto.js"></script>
 <script>
 Visor.iniciar({{
   pdf: "pdf/{slug}.pdf",
