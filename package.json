@@ -1,0 +1,8 @@
+{
+  "name": "libros-jose",
+  "private": true,
+  "description": "Herramientas para armar los libros (textos y audios). El sitio no las necesita.",
+  "devDependencies": {
+    "@breezystack/lamejs": "1.2.7"
+  }
+}

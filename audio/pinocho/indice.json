@@ -1,9 +1,9 @@
 {
- "voz": "es-AR-ElenaNeural",
- "velocidad": "-25%",
- "tono": "-4%",
+ "motor": "gemini",
+ "modelo": "gemini-2.5-flash-preview-tts",
+ "voz": "Sulafat",
  "paginas": {
-  "1": "025d2498af15",
+  "1": "271404bc1bd4",
   "2": "760c67558bd4",
   "3": "7317c5b560d4",
   "4": "c01170a718ed",
