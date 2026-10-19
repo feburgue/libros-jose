@@ -69,7 +69,7 @@ async function pedirGemini(texto){
     const msg = JSON.stringify(j.error || j);
     if (r.status === 429){
       // cupo del día terminado: no tiene sentido seguir; mañana se retoma donde quedó
-      if (/PerDay/i.test(msg)) throw new SinCupo('Se terminó el cupo gratis de hoy de Gemini: volver a correr mañana y sigue donde quedó.');
+      if (/PerDay/i.test(msg)) throw new SinCupo('Se terminó el cupo de hoy de Gemini (el modelo de voz permite una cantidad de audios por día): volver a correr mañana y sigue donde quedó.');
       const espera = Number((msg.match(/"retryDelay":"(\d+)/) || [])[1] || 30);
       if (intento < 8){ await esperar((espera + 2) * 1000); continue; }
     }
