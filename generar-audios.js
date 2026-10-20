@@ -153,7 +153,7 @@ function leerTextos(txt){
     const slug = f.replace(/\.txt$/, '');
     if (f.endsWith('.txt') && !libros.some(l => l.slug === slug)) libros.push({ slug });
   }
-  let grabadas = 0, letras = 0;
+  let grabadas = 0, letras = 0, fallidas = 0;
   try {
     for (const l of libros){
       if (pedidos.size && !pedidos.has(l.slug)) continue;
@@ -171,7 +171,11 @@ function leerTextos(txt){
       for (const [n, texto] of Object.entries(paginas)){
         const huella = crypto.createHash('sha1').update(AJUSTES + '|' + texto).digest('hex').slice(0, 12);
         if (anterior[n] === huella && fs.existsSync(archivo(n))) continue;
-        fs.writeFileSync(archivo(n), await grabar(texto));
+        // si una página falla (no la del cupo), se saltea y se reintenta en la próxima corrida
+        let audio;
+        try { audio = await grabar(texto); }
+        catch (e){ if (e instanceof SinCupo) throw e; console.log(`  página ${n}: ${e.message} (queda para la próxima)`); fallidas++; continue; }
+        fs.writeFileSync(archivo(n), audio);
         indice.paginas[n] = huella;
         nuevas++; grabadas++; letras += texto.length;
         // se guarda en cada página: si se corta a la mitad, lo ya grabado no se pierde
@@ -190,5 +194,5 @@ function leerTextos(txt){
     if (!(e instanceof SinCupo)) throw e;
     console.log(e.message);
   }
-  console.log(`Listo: ${grabadas} páginas, ${letras} letras.`);
+  console.log(`Listo: ${grabadas} páginas, ${letras} letras.` + (fallidas ? ` ${fallidas} fallaron y quedan para la próxima.` : ''));
 })().catch(e => { console.error(e.message); process.exit(1); });
