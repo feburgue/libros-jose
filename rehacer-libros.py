@@ -28,10 +28,12 @@ CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 FONDOS = {(2142, 3000), (1428, 2000)}
 # Libros de otras editoriales: páginas del PDF original que no son parte del cuento
 ESPECIALES = {
-    # En Caperucita el dibujo de cada escena está en la página siguiente a su texto: va con
-    # el texto y se saca la página que era solo dibujo (y la nota del editor, la 12)
+    # Caperucita: láminas nuevas pintadas con Gemini para nuestra versión suave
+    # (las del PDF venían partidas y la abuela salía como una ventana gris);
+    # la de la tapa ya trae el título pintado
     "caperucita": {"quitar": [3, 5, 7, 12],
-                   "imagen": {2: 3, 4: 5, 6: 7, 9: 7, 10: 3, 11: 1}},
+                   "archivo": {n: "pdf/originales/caperucita/escena-%d.jpg" % n for n in (1, 2, 4, 6, 8, 9, 10, 11)},
+                   "sin_titulo": True},
     "gato-con-botas": {"quitar": []},
     "hadas": {"quitar": []},
     "pinocho": {"quitar": [2, 14, 15]},          # aviso legal, recortable y publicidad
