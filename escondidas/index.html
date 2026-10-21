@@ -14,27 +14,30 @@
   :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
   html,body{margin:0; height:100%; overflow:hidden; background:#c9a37a; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:none}
-  #fondo{position:fixed; inset:-40px; background:center/cover; filter:blur(24px) brightness(.8)}
+  /* con el teléfono vertical (y si no se pudo girar la pantalla), todo el juego se dibuja
+     girado 90°: se ve horizontal sosteniendo el teléfono acostado */
+  #marco{position:fixed; inset:0}
+  body.girado #marco{inset:auto; top:0; left:100vw; width:100vh; height:100vw; transform-origin:0 0; transform:rotate(90deg)}
+  #fondo{position:absolute; inset:-40px; background:center/cover; filter:blur(24px) brightness(.8)}
   #escena{position:fixed; left:0; top:0; width:2752px; height:1536px; transform-origin:0 0}
   #escena > img.lugar{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
   .pieza{position:absolute; pointer-events:none; transform-origin:50% 100%}
   .brillo{position:absolute; font-size:70px; pointer-events:none; opacity:0}
-  #lobo{position:fixed; bottom:0; height:min(38vh,260px); pointer-events:auto; z-index:3; opacity:0}
-  #fila{position:fixed; top:max(8px, env(safe-area-inset-top)); left:10px; z-index:3; display:flex; gap:4px;
+  #lobo{position:absolute; bottom:0; height:min(38vh,260px); pointer-events:auto; z-index:3; opacity:0}
+  #fila{position:absolute; top:max(8px, env(safe-area-inset-top)); left:10px; z-index:3; display:flex; gap:4px;
     background:rgba(255,248,236,.9); border-radius:30px; padding:4px 10px; box-shadow:0 3px 10px rgba(0,0,0,.15)}
   #fila img{height:38px; opacity:.22; filter:grayscale(1); transition:opacity .4s, filter .4s}
   #fila img.si{opacity:1; filter:none}
-  #nivel{position:fixed; top:max(8px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:3;
+  #nivel{position:absolute; top:max(8px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:3;
     background:rgba(42,26,15,.5); color:var(--crema); border-radius:20px; padding:6px 14px; font:bold 16px/1 Georgia,serif}
-  #barra{position:fixed; top:max(8px, env(safe-area-inset-top)); right:10px; display:flex; gap:8px; z-index:3}
+  #barra{position:absolute; top:max(8px, env(safe-area-inset-top)); right:10px; display:flex; gap:8px; z-index:3}
   #barra button, #barra a{all:unset; cursor:pointer; width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
     background:rgba(42,26,15,.5); color:var(--crema); font-size:22px}
   #barra svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
-  .girar{display:none; font-size:16px !important; opacity:.85}
-  @media (orientation:portrait) and (max-width:700px){ .girar{display:block} }
-  @media (max-width:640px){ #fila img{height:26px} #nivel{display:none} }
-  .papelito{position:fixed; width:12px; height:18px; border-radius:3px; pointer-events:none; z-index:5}
-  .cartel{position:fixed; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.45); z-index:6; transition:opacity .6s}
+  .girar{display:none}
+  @media (max-height:420px), (max-width:420px){ #fila img{height:26px} #nivel{display:none} }
+  .papelito{position:absolute; width:12px; height:18px; border-radius:3px; pointer-events:none; z-index:5}
+  .cartel{position:absolute; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.45); z-index:6; transition:opacity .6s}
   .cartel.fuera{opacity:0; pointer-events:none}
   .cartel .caja{text-align:center; color:var(--crema); padding:0 16px}
   .cartel h1{margin:0 0 10px; font:bold clamp(28px,6vw,54px)/1.1 Georgia,serif; text-shadow:0 3px 14px rgba(0,0,0,.55)}
@@ -47,6 +50,7 @@
 </style>
 </head>
 <body>
+<div id="marco">
 <div id="fondo"></div>
 <div id="escena"><img class="lugar" id="lugar" alt=""></div>
 <img id="lobo" src="img/lobo-asoma.webp" alt="">
@@ -60,7 +64,7 @@
   <img src="img/mama-cabra.webp" alt="">
   <h1>¡A buscar a los cabritos!</h1>
   <p>Los cabritos se escondieron. ¿Los encontrás?</p>
-  <p class="girar">📱↔️ Mejor con el teléfono acostado</p>
+  
   <button class="grande" id="jugar">▶ Jugar</button>
 </div></div>
 <div class="cartel fuera" id="final"><div class="caja">
@@ -70,6 +74,7 @@
   <button class="grande" id="siguiente">▶ Siguiente nivel</button><br>
   <button class="chico" id="repetir">Jugar este nivel otra vez</button>
 </div></div>
+</div>
 
 <script>
 (function () {
@@ -105,12 +110,33 @@ function reglas(nivel) {
   return { cabritos: [3, 5, 7][Math.min(nivel, 3) - 1], sorpresas: Math.min(nivel, 3), pista: [8, 14, 20][Math.min(nivel, 3) - 1] * 1000 };
 }
 
+/* ---------- horizontal sí o sí ----------
+   Al tocar "Jugar" se pide pantalla completa y girar a horizontal (Android). Si no se
+   puede (iPhone, rotación bloqueada) y el teléfono está vertical, se dibuja girado. */
+function revisarGiro() { document.body.classList.toggle("girado", innerHeight > innerWidth); }
+function ancho() { return document.body.classList.contains("girado") ? innerHeight : innerWidth; }
+function alto() { return document.body.classList.contains("girado") ? innerWidth : innerHeight; }
+// un punto de la pantalla, en coordenadas del juego (girado o no)
+function aMarco(x, y) { return document.body.classList.contains("girado") ? [y, innerWidth - x] : [x, y]; }
+function horizontal() {
+  try {
+    var el = document.documentElement, pedir = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (pedir && !document.fullscreenElement) {
+      var pr = pedir.call(el);
+      if (pr && pr.then) pr.then(function () { return screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape"); }).catch(function () {});
+    } else if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(function () {});
+  } catch (e) {}
+}
+addEventListener("orientationchange", function () { setTimeout(acomodar, 300); });
+
 /* ---------- cámara: el lugar entero a la vista, centrado ---------- */
-var escena = $("#escena");
+var escena = $("#escena"), CAM = { x: 0, y: 0, s: 1 };
 function acomodar() {
-  var vw = innerWidth, vh = innerHeight, arriba = 56;
+  revisarGiro();
+  var vw = ancho(), vh = alto(), arriba = 56;
   var s = Math.min(vw / 2752, (vh - arriba) / 1536);
-  escena.style.transform = "translate(" + (vw - 2752 * s) / 2 + "px," + (arriba + (vh - arriba - 1536 * s) / 2) + "px) scale(" + s + ")";
+  CAM = { x: (vw - 2752 * s) / 2, y: arriba + (vh - arriba - 1536 * s) / 2, s: s };
+  escena.style.transform = "translate(" + CAM.x + "px," + CAM.y + "px) scale(" + s + ")";
 }
 addEventListener("resize", acomodar);
 
@@ -180,6 +206,7 @@ function armarNivel() {
 }
 function empezar() {
   audioCtx();
+  horizontal();
   armarNivel();
   $("#inicio").classList.add("fuera"); $("#final").classList.add("fuera");
   jugando = true;
@@ -188,7 +215,7 @@ function empezar() {
 }
 // Toca un escondite: el más chico que contiene el punto (los de adelante ganan)
 function esconditeEn(x, y) {
-  var r = escena.getBoundingClientRect(), s = r.width / 2752, px = (x - r.left) / s, py = (y - r.top) / s, mejor = null;
+  var m = aMarco(x, y), px = (m[0] - CAM.x) / CAM.s, py = (m[1] - CAM.y) / CAM.s, mejor = null;
   escondites.forEach(function (e) {
     var q = e.rect;
     if (px >= q[0] && px <= q[2] && py >= q[1] && py <= q[3]) {
@@ -284,9 +311,9 @@ function ganar() {
 function festejo() {
   var colores = ["#f6c945", "#f28fb0", "#7cc4f2", "#9be08a", "#c7a3f0", "#f2a567"];
   for (var k = 0; k < 50; k++) {
-    var e = document.createElement("div"); e.className = "papelito"; e.style.background = colores[k % colores.length]; document.body.appendChild(e);
-    gsap.fromTo(e, { x: innerWidth / 2, y: innerHeight * .3, rotation: 0, opacity: 1 },
-      { x: innerWidth / 2 + (Math.random() - .5) * innerWidth, y: innerHeight * (.1 + Math.random() * .9), rotation: Math.random() * 720,
+    var e = document.createElement("div"); e.className = "papelito"; e.style.background = colores[k % colores.length]; $("#marco").appendChild(e);
+    gsap.fromTo(e, { x: ancho() / 2, y: alto() * .3, rotation: 0, opacity: 1 },
+      { x: ancho() / 2 + (Math.random() - .5) * ancho(), y: alto() * (.1 + Math.random() * .9), rotation: Math.random() * 720,
         opacity: 0, duration: 2 + Math.random(), ease: "power2.out", onComplete: (function (el) { return function () { el.remove(); }; })(e) });
   }
 }
