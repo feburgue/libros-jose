@@ -55,7 +55,8 @@ async function pedirGemini(texto){
       method: 'POST',
       headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: GEMINI.estilo + '\n\n' + texto }] }],
+        // con textos muy cortos (el título de la tapa) Gemini a veces no devuelve audio: se lo pide como título
+        contents: [{ parts: [{ text: (texto.length < 70 ? 'Decí en voz alta, despacito y con voz dulce, el título de este cuento, con acento rioplatense:' : GEMINI.estilo) + '\n\n' + texto }] }],
         generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI.voz } } } }
       })
     });
