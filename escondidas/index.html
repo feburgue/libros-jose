@@ -94,23 +94,29 @@ var nombre = (function () { try { return localStorage.getItem("minnie.name") || 
    Rectángulos [x0, y0, x1, y1] en coordenadas del dibujo (2752 x 1536). */
 var LUGARES = {
   casa: { img: "img/casa.jpg", escondites: {
-    cama: [70, 760, 900, 1320], horno: [440, 460, 940, 900], ropero: [950, 290, 1430, 1040], cortina: [1450, 270, 2020, 780],
-    canasta: [1590, 790, 1860, 1040], mesa: [1850, 800, 2390, 1180], reloj: [2390, 330, 2680, 1340], alfombra: [900, 1090, 1960, 1470] } },
+    almohada: [70, 760, 330, 1000], colcha: [330, 860, 900, 1320], horno: [440, 460, 940, 900],
+    roperoIzq: [950, 290, 1190, 1040], roperoDer: [1190, 290, 1430, 1040],
+    cortinaIzq: [1450, 270, 1700, 780], cortinaDer: [1770, 270, 2020, 780], canasta: [1590, 790, 1860, 1040],
+    mesa: [1850, 800, 2390, 1180], relojArriba: [2390, 330, 2680, 820], relojAbajo: [2390, 820, 2680, 1340],
+    alfombra: [900, 1090, 1960, 1470] } },
   cocina: { img: "img/cocina.jpg", escondites: {
-    alacena: [140, 230, 610, 1080], barril: [630, 670, 925, 1060], olla: [60, 1080, 370, 1360], cortinas: [1095, 280, 1630, 830],
-    mesa: [1020, 840, 1690, 1400], estufa: [1690, 760, 1920, 1060], lena: [1920, 750, 2160, 1060], bolsa: [2160, 760, 2380, 1200],
-    escobero: [2380, 200, 2710, 1350] } },
+    alacenaIzq: [140, 230, 375, 1080], alacenaDer: [375, 230, 610, 1080], barril: [630, 670, 925, 1060], olla: [60, 1080, 370, 1360],
+    cortinaIzq: [1095, 280, 1330, 830], cortinaDer: [1400, 280, 1630, 830], mesa: [1020, 840, 1690, 1400],
+    estufa: [1690, 760, 1920, 1060], lena: [1920, 750, 2160, 1060], bolsa: [2160, 760, 2380, 1200],
+    escoberoArriba: [2380, 200, 2710, 760], escoberoAbajo: [2380, 760, 2710, 1350] } },
   granero: { img: "img/granero.jpg", escondites: {
     heno: [110, 590, 760, 900], carretilla: [40, 910, 1070, 1430], baul: [760, 756, 1224, 1070], ventana: [1180, 300, 1520, 660],
-    fardos: [1580, 650, 1990, 1060], balde: [1990, 830, 2300, 1110], regadera: [2044, 1130, 2420, 1480], macetas: [2420, 1160, 2750, 1530],
-    puerta: [2450, 230, 2710, 1140] } }
+    fardoArriba: [1580, 650, 1990, 860], fardoAbajo: [1580, 860, 1990, 1060], balde: [1990, 830, 2300, 1110],
+    regadera: [2044, 1130, 2420, 1480], macetas: [2420, 1160, 2750, 1530],
+    puertaArriba: [2450, 230, 2710, 690], puertaAbajo: [2450, 690, 2710, 1140] } }
 };
 var COLORES = ["rojo", "amarillo", "azul", "verde", "violeta", "naranja", "rosa"];
 var SORPRESAS = [{ img: "gato.webp", frase: 5 }, { img: "pato.webp", frase: 6 }, { img: "pelota.webp", frase: 7 }];
 
-/* ---------- niveles: más cabritos, más sorpresas y pistas más tardías ---------- */
+/* ---------- niveles ---------- */
+// Siempre se esconden los 7; lo que sube es cuántas sorpresas despistan y cuánto tarda la pista
 function reglas(nivel) {
-  return { cabritos: [3, 5, 7][Math.min(nivel, 3) - 1], sorpresas: Math.min(nivel, 3), pista: [8, 14, 20][Math.min(nivel, 3) - 1] * 1000 };
+  return { cabritos: 7, sorpresas: Math.min(nivel, 4), pista: [10, 16, 24, 32][Math.min(nivel, 4) - 1] * 1000 };
 }
 
 /* ---------- horizontal sí o sí ----------
