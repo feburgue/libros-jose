@@ -22,6 +22,12 @@
   #escena{position:fixed; left:0; top:0; width:2752px; height:1536px; transform-origin:0 0}
   #escena > img.lugar{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
   .pieza{position:absolute; pointer-events:none; transform-origin:50% 100%}
+  /* puntito que marca cada escondite que todavía se puede revisar */
+  .punto{position:absolute; width:90px; height:90px; margin:-45px 0 0 -45px; border-radius:50%; pointer-events:none; z-index:1;
+    background:radial-gradient(circle, rgba(90,170,255,.95) 0%, rgba(60,140,255,.6) 40%, rgba(60,140,255,0) 72%);
+    border:5px solid rgba(255,255,255,.8); animation:latido 1.8s ease-in-out infinite}
+  @keyframes latido{50%{transform:scale(1.25); opacity:.65}}
+  .punto.visto{animation:none; opacity:0; transition:opacity .5s}
   /* la mamá: pies en (x, y) */
   #mama{position:absolute; left:0; top:0; z-index:2; pointer-events:none; will-change:transform}
   #mama img{position:absolute; height:470px; left:-116px; bottom:0; filter:drop-shadow(0 10px 10px rgba(60,30,10,.25))}
@@ -45,6 +51,15 @@
   .cartel .caja{text-align:center; color:var(--crema); padding:0 16px}
   .cartel h1{margin:0 0 10px; font:bold clamp(28px,6vw,54px)/1.1 Georgia,serif; text-shadow:0 3px 14px rgba(0,0,0,.55)}
   .cartel p{margin:0 0 18px; font:600 clamp(17px,3.2vw,24px)/1.35 Georgia,serif; text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  #lugares{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; max-width:min(760px, 94vw); margin:0 auto}
+  #lugares button{all:unset; cursor:pointer; border-radius:14px; overflow:hidden; background:rgba(255,248,236,.92); color:var(--tinta);
+    box-shadow:0 4px 12px rgba(0,0,0,.3); font:bold clamp(12px,2.2vw,16px)/1.1 Georgia,serif; text-align:center}
+  #lugares button img{width:100%; aspect-ratio:16/9; object-fit:cover; display:block; height:auto; margin:0}
+  #lugares button span{display:block; padding:5px 4px 6px}
+  #inicio h1{font-size:clamp(22px,4.5vw,44px)} #inicio .caja > img{height:min(18vh,120px)}
+  /* pantallas bajas (teléfono acostado): sin la mamá y con tarjetas más chicas, para que entren las dos filas */
+  @media (max-height:520px){ #inicio .caja > img{display:none} #inicio h1{font-size:26px; margin-bottom:4px}
+    #inicio p{margin-bottom:8px; font-size:17px} #lugares{max-width:min(94vw,128vh); gap:8px} #lugares button span{padding:3px 2px 4px} }
   .cartel img{height:min(30vh,200px); display:block; margin:0 auto 6px}
   .grande{all:unset; cursor:pointer; background:var(--ambar); color:var(--tinta); font:600 24px/1 system-ui,sans-serif;
     padding:20px 34px; border-radius:50px; box-shadow:0 6px 20px rgba(0,0,0,.35); margin:4px}
@@ -66,9 +81,8 @@
 <div class="cartel" id="inicio"><div class="caja">
   <img src="img/mama-cabra.webp" alt="">
   <h1>¡A buscar a los cabritos!</h1>
-  <p>Los cabritos se escondieron. ¿Los encontrás?</p>
-  
-  <button class="grande" id="jugar">▶ Jugar</button>
+  <p>¿Dónde jugamos?</p>
+  <div id="lugares"></div>
 </div></div>
 <div class="cartel fuera" id="final"><div class="caja">
   <img src="img/mama-cabra.webp" alt="">
@@ -76,6 +90,7 @@
   <p id="finalTexto"></p>
   <button class="grande" id="siguiente">▶ Siguiente nivel</button><br>
   <button class="chico" id="repetir">Jugar este nivel otra vez</button>
+  <button class="chico" id="cambiar">Cambiar de lugar</button>
 </div></div>
 </div>
 
@@ -208,23 +223,37 @@ function decir(n) {
 
 /* ---------- el juego ---------- */
 var nivel = Math.max(1, +store.get("nivel", "1") || 1), lugarAnt = store.get("lugar", ""), escondites = [], encontrados = 0, total = 0;
-var jugando = false, timerPista = null, timerLobo = null;
+var jugando = false, timerPista = null, timerLobo = null, elegido = "";
+var NOMBRES = { casa: "La casita", cocina: "La cocina", granero: "El granero", lago: "El lago", montana: "La montaña", circo: "El circo", parque: "El parque" };
+// La pantalla de inicio deja elegir dónde jugar (o "sorpresa", que sale uno al azar)
+function pintarLugares() {
+  $("#lugares").innerHTML = Object.keys(LUGARES).map(function (n) {
+    return '<button data-l="' + n + '"><img src="' + LUGARES[n].img + '" alt=""><span>' + NOMBRES[n] + '</span></button>';
+  }).join("") + '<button data-l=""><img src="img/mama-cabra.webp" alt="" style="object-fit:contain; background:#f6e7cf"><span>🎲 Sorpresa</span></button>';
+  $("#lugares").querySelectorAll("button").forEach(function (b) {
+    b.onclick = function () { elegido = b.dataset.l; empezar(); };
+  });
+}
 function mezclar(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function armarNivel() {
   // un lugar distinto al de la vez anterior
   var nombres = Object.keys(LUGARES).filter(function (n) { return n !== lugarAnt; });
-  var lugar = nombres[Math.floor(Math.random() * nombres.length)];
+  var lugar = LUGARES[elegido] ? elegido : nombres[Math.floor(Math.random() * nombres.length)];
   lugarAnt = lugar; store.set("lugar", lugar);
   var L = LUGARES[lugar], r = reglas(nivel), ids = mezclar(Object.keys(L.escondites));
   total = Math.min(r.cabritos, ids.length - 1);
   var sorpresas = Math.min(r.sorpresas, ids.length - total);
   $("#lugar").src = L.img; $("#fondo").style.backgroundImage = "url(" + L.img + ")";
-  escena.querySelectorAll(".pieza, .brillo").forEach(function (e) { e.remove(); });
+  escena.querySelectorAll(".pieza, .brillo, .punto").forEach(function (e) { e.remove(); });
   ponerMama();
   var sorp = mezclar(SORPRESAS.slice());
   escondites = ids.map(function (id, i) {
     var q = L.escondites[id];
-    return { id: id, rect: q, abierto: false,
+    var punto = document.createElement("div"); punto.className = "punto";
+    punto.style.left = (q[0] + q[2]) / 2 + "px"; punto.style.top = (q[1] + q[3]) / 2 + "px";
+    punto.style.animationDelay = (-Math.random() * 1.8) + "s";
+    escena.appendChild(punto);
+    return { id: id, rect: q, abierto: false, punto: punto,
       que: i < total ? { cabrito: COLORES[i] } : i < total + sorpresas ? { sorpresa: sorp[(i - total) % sorp.length] } : null };
   });
   encontrados = 0;
@@ -297,8 +326,9 @@ function tocar(ev) {
 }
 function revelar(e) {
   if (e.abierto) return;
+  e.punto.classList.add("visto");
   // vacío: un soplidito en su lugar
-  if (!e.que) { sfx.nada(); sacudir(e); return; }
+  if (!e.que) { e.abierto = true; sfx.nada(); sacudir(e); return; }
   e.abierto = true;
   pistaLuego();
   if (e.que.cabrito) {
@@ -376,7 +406,8 @@ function festejo() {
   }
 }
 document.addEventListener("pointerdown", function (ev) { if (!ev.target.closest("#barra, .cartel, #lobo")) tocar(ev); });
-$("#jugar").addEventListener("click", empezar);
+pintarLugares();
+$("#cambiar").addEventListener("click", function () { $("#final").classList.add("fuera"); $("#inicio").classList.remove("fuera"); });
 $("#siguiente").addEventListener("click", function () { nivel++; store.set("nivel", nivel); empezar(); });
 $("#repetir").addEventListener("click", empezar);
 $("#sonido").addEventListener("click", function () {
