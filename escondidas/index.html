@@ -22,6 +22,9 @@
   #escena{position:fixed; left:0; top:0; width:2752px; height:1536px; transform-origin:0 0}
   #escena > img.lugar{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
   .pieza{position:absolute; pointer-events:none; transform-origin:50% 100%}
+  /* la mamá: pies en (x, y) */
+  #mama{position:absolute; left:0; top:0; z-index:2; pointer-events:none; will-change:transform}
+  #mama img{position:absolute; height:470px; left:-116px; bottom:0; filter:drop-shadow(0 10px 10px rgba(60,30,10,.25))}
   .brillo{position:absolute; font-size:70px; pointer-events:none; opacity:0}
   #lobo{position:absolute; bottom:0; height:min(38vh,260px); pointer-events:auto; z-index:3; opacity:0}
   #fila{position:absolute; top:max(8px, env(safe-area-inset-top)); left:10px; z-index:3; display:flex; gap:4px;
@@ -194,6 +197,7 @@ function armarNivel() {
   var sorpresas = Math.min(r.sorpresas, ids.length - total);
   $("#lugar").src = L.img; $("#fondo").style.backgroundImage = "url(" + L.img + ")";
   escena.querySelectorAll(".pieza, .brillo").forEach(function (e) { e.remove(); });
+  ponerMama();
   var sorp = mezclar(SORPRESAS.slice());
   escondites = ids.map(function (id, i) {
     var q = L.escondites[id];
@@ -234,12 +238,43 @@ function pieza(src, e, alto) {
   escena.appendChild(im);
   return im;
 }
+/* ---------- la mamá cabra busca: camina hasta el escondite tocado ---------- */
+var mama = null, caminando = false, PISO = 1470, ALTO_MAMA = 470;
+function ponerMama() {
+  if (!mama) {
+    mama = document.createElement("div"); mama.id = "mama";
+    mama.innerHTML = '<div class="giro"><img src="img/mama-cabra.webp" alt=""></div>';
+    escena.appendChild(mama);
+  }
+  caminando = false;
+  gsap.killTweensOf(mama); gsap.killTweensOf(mama.querySelector("img"));
+  gsap.set(mama, { x: 1376, y: PISO });
+}
+function irA(e, listo) {
+  var q = e.rect, destino = Math.max(200, Math.min(2550, (q[0] + q[2]) / 2));
+  // se para delante del mueble: al pie si está en el piso, más abajo si está alto
+  var piso = Math.min(PISO, Math.max(q[3] + 40, 1250));
+  var x0 = gsap.getProperty(mama, "x"), lejos = Math.abs(destino - x0);
+  var dur = Math.max(.35, Math.min(1.4, lejos / 1500));
+  caminando = true;
+  gsap.set(mama.querySelector(".giro"), { scaleX: destino < x0 - 5 ? -1 : 1 });
+  var img = mama.querySelector("img");
+  gsap.fromTo(img, { y: 0 }, { y: -28, duration: .14, yoyo: true, repeat: Math.max(1, Math.round(dur / .14)) | 1, ease: "sine.inOut" });
+  gsap.to(mama, { x: destino, y: piso, duration: dur, ease: "power1.inOut", onComplete: function () {
+    // se asoma a mirar
+    gsap.fromTo(img, { rotation: 0 }, { rotation: destino >= x0 ? 8 : -8, duration: .18, yoyo: true, repeat: 1, transformOrigin: "50% 100%",
+      onComplete: function () { caminando = false; listo(); } });
+  } });
+}
 function tocar(ev) {
-  if (!jugando) return;
+  if (!jugando || caminando) return;
   var e = esconditeEn(ev.clientX, ev.clientY);
-  if (!e) return;
+  if (!e || e.abierto) return;
+  irA(e, function () { if (jugando) revelar(e); });
+}
+function revelar(e) {
   if (e.abierto) return;
-  // el mueble "se sacude" un poquito (un brillito en su lugar)
+  // vacío: un soplidito en su lugar
   if (!e.que) { sfx.nada(); sacudir(e); return; }
   e.abierto = true;
   pistaLuego();
