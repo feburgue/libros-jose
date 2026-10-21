@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>¡A buscar a los cabritos!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#2a1a0f">
+<link rel="shortcut icon" type="image/png" href="../favicon.ico">
+<!-- Casita, cocina, granero, cabritos y sorpresas pintados con Nano Banana (Gemini)
+     a partir de textos de Claude; animación con GSAP 3.12.5 (cerditos/lib). -->
+<script src="../cerditos/lib/gsap.min.js"></script>
+<script src="../lib/despierto.js"></script>
+<style>
+  :root{ --crema:#fff6e7; --ambar:#f2a567; --tinta:#3a2415 }
+  html,body{margin:0; height:100%; overflow:hidden; background:#c9a37a; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:none}
+  #fondo{position:fixed; inset:-40px; background:center/cover; filter:blur(24px) brightness(.8)}
+  #escena{position:fixed; left:0; top:0; width:2752px; height:1536px; transform-origin:0 0}
+  #escena > img.lugar{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+  .pieza{position:absolute; pointer-events:none; transform-origin:50% 100%}
+  .brillo{position:absolute; font-size:70px; pointer-events:none; opacity:0}
+  #lobo{position:fixed; bottom:0; height:min(38vh,260px); pointer-events:auto; z-index:3; opacity:0}
+  #fila{position:fixed; top:max(8px, env(safe-area-inset-top)); left:10px; z-index:3; display:flex; gap:4px;
+    background:rgba(255,248,236,.9); border-radius:30px; padding:4px 10px; box-shadow:0 3px 10px rgba(0,0,0,.15)}
+  #fila img{height:38px; opacity:.22; filter:grayscale(1); transition:opacity .4s, filter .4s}
+  #fila img.si{opacity:1; filter:none}
+  #nivel{position:fixed; top:max(8px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:3;
+    background:rgba(42,26,15,.5); color:var(--crema); border-radius:20px; padding:6px 14px; font:bold 16px/1 Georgia,serif}
+  #barra{position:fixed; top:max(8px, env(safe-area-inset-top)); right:10px; display:flex; gap:8px; z-index:3}
+  #barra button, #barra a{all:unset; cursor:pointer; width:44px; height:44px; border-radius:12px; display:grid; place-items:center;
+    background:rgba(42,26,15,.5); color:var(--crema); font-size:22px}
+  #barra svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  .girar{display:none; font-size:16px !important; opacity:.85}
+  @media (orientation:portrait) and (max-width:700px){ .girar{display:block} }
+  @media (max-width:640px){ #fila img{height:26px} #nivel{display:none} }
+  .papelito{position:fixed; width:12px; height:18px; border-radius:3px; pointer-events:none; z-index:5}
+  .cartel{position:fixed; inset:0; display:grid; place-items:center; background:rgba(27,20,16,.45); z-index:6; transition:opacity .6s}
+  .cartel.fuera{opacity:0; pointer-events:none}
+  .cartel .caja{text-align:center; color:var(--crema); padding:0 16px}
+  .cartel h1{margin:0 0 10px; font:bold clamp(28px,6vw,54px)/1.1 Georgia,serif; text-shadow:0 3px 14px rgba(0,0,0,.55)}
+  .cartel p{margin:0 0 18px; font:600 clamp(17px,3.2vw,24px)/1.35 Georgia,serif; text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .cartel img{height:min(30vh,200px); display:block; margin:0 auto 6px}
+  .grande{all:unset; cursor:pointer; background:var(--ambar); color:var(--tinta); font:600 24px/1 system-ui,sans-serif;
+    padding:20px 34px; border-radius:50px; box-shadow:0 6px 20px rgba(0,0,0,.35); margin:4px}
+  .chico{all:unset; cursor:pointer; color:var(--crema); font:600 17px/1 system-ui,sans-serif; padding:12px 18px; border-radius:30px;
+    border:2px solid rgba(255,246,231,.5); margin:4px}
+</style>
+</head>
+<body>
+<div id="fondo"></div>
+<div id="escena"><img class="lugar" id="lugar" alt=""></div>
+<img id="lobo" src="img/lobo-asoma.webp" alt="">
+<div id="fila" aria-label="Cabritos encontrados"></div>
+<div id="nivel">Nivel 1</div>
+<div id="barra">
+  <a href="../index.html" aria-label="Volver a los libros" title="Todos los libros"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>
+  <button id="sonido" aria-label="Sonido prendido" title="Sonido">🔊</button>
+</div>
+<div class="cartel" id="inicio"><div class="caja">
+  <img src="img/mama-cabra.webp" alt="">
+  <h1>¡A buscar a los cabritos!</h1>
+  <p>Los cabritos se escondieron. ¿Los encontrás?</p>
+  <p class="girar">📱↔️ Mejor con el teléfono acostado</p>
+  <button class="grande" id="jugar">▶ Jugar</button>
+</div></div>
+<div class="cartel fuera" id="final"><div class="caja">
+  <img src="img/mama-cabra.webp" alt="">
+  <h1 id="finalTitulo">¡Los encontraste a todos!</h1>
+  <p id="finalTexto"></p>
+  <button class="grande" id="siguiente">▶ Siguiente nivel</button><br>
+  <button class="chico" id="repetir">Jugar este nivel otra vez</button>
+</div></div>
+
+<script>
+(function () {
+"use strict";
+var $ = function (s) { return document.querySelector(s); };
+var store = {
+  get: function (k, d) { try { var v = localStorage.getItem("escondidas." + k); return v === null ? d : v; } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem("escondidas." + k, v); } catch (e) {} }
+};
+var conSonido = store.get("sonido", "1") === "1";
+var nombre = (function () { try { return localStorage.getItem("minnie.name") || "Josefina"; } catch (e) { return "Josefina"; } })();
+
+/* ---------- lugares y escondites ----------
+   Rectángulos [x0, y0, x1, y1] en coordenadas del dibujo (2752 x 1536). */
+var LUGARES = {
+  casa: { img: "img/casa.jpg", escondites: {
+    cama: [70, 760, 900, 1320], horno: [440, 460, 940, 900], ropero: [950, 290, 1430, 1040], cortina: [1450, 270, 2020, 780],
+    canasta: [1590, 790, 1860, 1040], mesa: [1850, 800, 2390, 1180], reloj: [2390, 330, 2680, 1340], alfombra: [900, 1090, 1960, 1470] } },
+  cocina: { img: "img/cocina.jpg", escondites: {
+    alacena: [140, 230, 610, 1080], barril: [630, 670, 925, 1060], olla: [60, 1080, 370, 1360], cortinas: [1095, 280, 1630, 830],
+    mesa: [1020, 840, 1690, 1400], estufa: [1690, 760, 1920, 1060], lena: [1920, 750, 2160, 1060], bolsa: [2160, 760, 2380, 1200],
+    escobero: [2380, 200, 2710, 1350] } },
+  granero: { img: "img/granero.jpg", escondites: {
+    heno: [110, 590, 760, 900], carretilla: [40, 910, 1070, 1430], baul: [760, 756, 1224, 1070], ventana: [1180, 300, 1520, 660],
+    fardos: [1580, 650, 1990, 1060], balde: [1990, 830, 2300, 1110], regadera: [2044, 1130, 2420, 1480], macetas: [2420, 1160, 2750, 1530],
+    puerta: [2450, 230, 2710, 1140] } }
+};
+var COLORES = ["rojo", "amarillo", "azul", "verde", "violeta", "naranja", "rosa"];
+var SORPRESAS = [{ img: "gato.webp", frase: 5 }, { img: "pato.webp", frase: 6 }, { img: "pelota.webp", frase: 7 }];
+
+/* ---------- niveles: más cabritos, más sorpresas y pistas más tardías ---------- */
+function reglas(nivel) {
+  return { cabritos: [3, 5, 7][Math.min(nivel, 3) - 1], sorpresas: Math.min(nivel, 3), pista: [8, 14, 20][Math.min(nivel, 3) - 1] * 1000 };
+}
+
+/* ---------- cámara: el lugar entero a la vista, centrado ---------- */
+var escena = $("#escena");
+function acomodar() {
+  var vw = innerWidth, vh = innerHeight, arriba = 56;
+  var s = Math.min(vw / 2752, (vh - arriba) / 1536);
+  escena.style.transform = "translate(" + (vw - 2752 * s) / 2 + "px," + (arriba + (vh - arriba - 1536 * s) / 2) + "px) scale(" + s + ")";
+}
+addEventListener("resize", acomodar);
+
+/* ---------- sonidos ---------- */
+var ctx = null;
+function audioCtx() { try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); } catch (e) {} return ctx; }
+function tono(f0, f1, dur, tipo, vol, cuando) {
+  var c = audioCtx(); if (!c || !conSonido) return;
+  var t = c.currentTime + (cuando || 0), o = c.createOscillator(), g = c.createGain();
+  o.type = tipo || "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol || .2, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .02);
+}
+var sfx = {
+  nada: function () { tono(260, 200, .12, "sine", .12); },
+  encontrado: function () { tono(520, 1040, .18, "triangle", .2); tono(780, 1560, .18, "sine", .1, .1); },
+  sorpresa: function () { tono(400, 300, .15, "triangle", .15); tono(300, 450, .15, "triangle", .12, .15); },
+  festejo: function () { [523, 659, 784, 1046].forEach(function (f, k) { tono(f, f, .18, "triangle", .15, k * .12); }); }
+};
+
+/* ---------- frases (Gemini si están grabadas; si no, voz del navegador) ---------- */
+var frases = {}, audios = {}, voz = new Audio();
+fetch("../textos/escondidas.txt").then(function (r) { return r.text(); }).then(function (t) {
+  var a = null;
+  t.split(/\r?\n/).forEach(function (l) {
+    var m = l.match(/^==\s*(\d+)\s*$/);
+    if (m) { a = +m[1]; frases[a] = ""; return; }
+    if (a !== null && l.trim() && !/^#/.test(l)) frases[a] += l.trim() + " ";
+  });
+}).catch(function () {});
+fetch("../audio/escondidas/indice.json").then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) { audios = j.paginas || {}; }).catch(function () {});
+function decir(n) {
+  if (!conSonido) return;
+  if (audios[n] && !(n === 9 && nombre !== "Josefina")) { voz.src = "../audio/escondidas/p" + (n < 10 ? "0" : "") + n + ".mp3"; voz.play().catch(function () {}); return; }
+  var s = window.speechSynthesis; if (!s || !frases[n]) return;
+  s.cancel();
+  var u = new SpeechSynthesisUtterance(frases[n].replace(/Josefina/g, nombre));
+  var es = s.getVoices().filter(function (v) { return /^es/i.test(v.lang); });
+  var v = es.filter(function (v) { return /paulina|sabina|dalia|elena|helena|laura|valentina|google español/i.test(v.name); })[0] || es[0];
+  if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "es-419";
+  u.rate = .95; u.pitch = 1.15; s.speak(u);
+}
+
+/* ---------- el juego ---------- */
+var nivel = Math.max(1, +store.get("nivel", "1") || 1), lugarAnt = store.get("lugar", ""), escondites = [], encontrados = 0, total = 0;
+var jugando = false, timerPista = null, timerLobo = null;
+function mezclar(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function armarNivel() {
+  // un lugar distinto al de la vez anterior
+  var nombres = Object.keys(LUGARES).filter(function (n) { return n !== lugarAnt; });
+  var lugar = nombres[Math.floor(Math.random() * nombres.length)];
+  lugarAnt = lugar; store.set("lugar", lugar);
+  var L = LUGARES[lugar], r = reglas(nivel), ids = mezclar(Object.keys(L.escondites));
+  total = Math.min(r.cabritos, ids.length - 1);
+  var sorpresas = Math.min(r.sorpresas, ids.length - total);
+  $("#lugar").src = L.img; $("#fondo").style.backgroundImage = "url(" + L.img + ")";
+  escena.querySelectorAll(".pieza, .brillo").forEach(function (e) { e.remove(); });
+  var sorp = mezclar(SORPRESAS.slice());
+  escondites = ids.map(function (id, i) {
+    var q = L.escondites[id];
+    return { id: id, rect: q, abierto: false,
+      que: i < total ? { cabrito: COLORES[i] } : i < total + sorpresas ? { sorpresa: sorp[(i - total) % sorp.length] } : null };
+  });
+  encontrados = 0;
+  $("#fila").innerHTML = COLORES.slice(0, total).map(function (c) { return '<img src="img/cabrito-' + c + '.webp" alt="" data-c="' + c + '">'; }).join("");
+  $("#nivel").textContent = "Nivel " + nivel;
+}
+function empezar() {
+  audioCtx();
+  armarNivel();
+  $("#inicio").classList.add("fuera"); $("#final").classList.add("fuera");
+  jugando = true;
+  decir(nivel > 1 ? 10 : 1);
+  pistaLuego(); loboLuego();
+}
+// Toca un escondite: el más chico que contiene el punto (los de adelante ganan)
+function esconditeEn(x, y) {
+  var r = escena.getBoundingClientRect(), s = r.width / 2752, px = (x - r.left) / s, py = (y - r.top) / s, mejor = null;
+  escondites.forEach(function (e) {
+    var q = e.rect;
+    if (px >= q[0] && px <= q[2] && py >= q[1] && py <= q[3]) {
+      var area = (q[2] - q[0]) * (q[3] - q[1]);
+      if (!mejor || area < mejor.area) mejor = { e: e, area: area };
+    }
+  });
+  return mejor && mejor.e;
+}
+function pieza(src, e, alto) {
+  var q = e.rect, cx = (q[0] + q[2]) / 2, base = Math.min(q[3], q[1] + (q[3] - q[1]) * .85);
+  var im = document.createElement("img"); im.className = "pieza"; im.src = "img/" + src;
+  im.style.height = alto + "px"; im.style.top = (base - alto) + "px";
+  im.onload = function () { var w = alto * im.naturalWidth / im.naturalHeight; im.style.left = (cx - w / 2) + "px"; };
+  im.style.left = (cx - alto * .4) + "px";
+  escena.appendChild(im);
+  return im;
+}
+function tocar(ev) {
+  if (!jugando) return;
+  var e = esconditeEn(ev.clientX, ev.clientY);
+  if (!e) return;
+  if (e.abierto) return;
+  // el mueble "se sacude" un poquito (un brillito en su lugar)
+  if (!e.que) { sfx.nada(); sacudir(e); return; }
+  e.abierto = true;
+  pistaLuego();
+  if (e.que.cabrito) {
+    sfx.encontrado(); decir([2, 3, 4][Math.floor(Math.random() * 3)]);
+    var c = pieza("cabrito-" + e.que.cabrito + ".webp", e, 330);
+    gsap.fromTo(c, { scale: 0, y: 40 }, { scale: 1, y: 0, duration: .5, ease: "back.out(2)" });
+    gsap.to(c, { y: -40, duration: .25, yoyo: true, repeat: 3, delay: .5, ease: "sine.out" });
+    encontrados++;
+    var icono = $('#fila img[data-c="' + e.que.cabrito + '"]'); if (icono) { icono.classList.add("si"); gsap.fromTo(icono, { scale: 1.8 }, { scale: 1, duration: .5, ease: "back.out(2)" }); }
+    if (encontrados === total) setTimeout(ganar, 1500);
+  } else {
+    sfx.sorpresa(); decir(e.que.sorpresa.frase);
+    var s = pieza(e.que.sorpresa.img, e, 230);
+    gsap.fromTo(s, { scale: 0 }, { scale: 1, duration: .45, ease: "back.out(2)" });
+    gsap.to(s, { rotation: 6, duration: .35, yoyo: true, repeat: 3, delay: .5 });
+  }
+}
+function sacudir(e) {
+  var b = document.createElement("div"); b.className = "brillo"; b.textContent = "💨";
+  var q = e.rect; b.style.left = ((q[0] + q[2]) / 2 - 35) + "px"; b.style.top = ((q[1] + q[3]) / 2 - 35) + "px";
+  escena.appendChild(b);
+  gsap.fromTo(b, { opacity: .9, scale: .6 }, { opacity: 0, scale: 1.4, y: -60, duration: .7, onComplete: function () { b.remove(); } });
+}
+// Pista: si pasa un rato sin encontrar, brilla un escondite que tiene un cabrito
+function pistaLuego() {
+  clearTimeout(timerPista);
+  if (!jugando) return;
+  timerPista = setTimeout(function () {
+    var faltan = escondites.filter(function (e) { return !e.abierto && e.que && e.que.cabrito; });
+    if (!faltan.length || !jugando) return;
+    var e = faltan[Math.floor(Math.random() * faltan.length)], q = e.rect;
+    for (var k = 0; k < 3; k++) {
+      var b = document.createElement("div"); b.className = "brillo"; b.textContent = "✨"; escena.appendChild(b);
+      b.style.left = (q[0] + (q[2] - q[0]) * (.2 + k * .3) - 35) + "px"; b.style.top = (q[1] + (q[3] - q[1]) * (.3 + (k % 2) * .3)) + "px";
+      gsap.fromTo(b, { opacity: 0, scale: .5 }, { opacity: 1, scale: 1.2, duration: .5, yoyo: true, repeat: 3, delay: k * .2, onComplete: (function (el) { return function () { el.remove(); }; })(b) });
+    }
+    pistaLuego();
+  }, reglas(nivel).pista);
+}
+// El lobo se asoma de vez en cuando por un costado; si lo tocan, se va
+var lobo = $("#lobo");
+function loboLuego() {
+  clearTimeout(timerLobo);
+  timerLobo = setTimeout(function () {
+    if (!jugando) return;
+    var izq = Math.random() < .5;
+    lobo.style.left = izq ? "0" : "auto"; lobo.style.right = izq ? "auto" : "0";
+    gsap.set(lobo, { scaleX: izq ? 1 : -1, x: izq ? -200 : 200 });
+    gsap.to(lobo, { x: 0, opacity: 1, duration: .8, ease: "power2.out" });
+    gsap.to(lobo, { x: izq ? -220 : 220, opacity: 0, duration: .8, delay: 4, ease: "power2.in", onComplete: loboLuego });
+  }, 14000 + Math.random() * 12000);
+}
+lobo.addEventListener("pointerdown", function (ev) {
+  ev.stopPropagation(); if (!jugando) return;
+  decir(8); sfx.sorpresa();
+  gsap.killTweensOf(lobo);
+  var izq = lobo.style.left === "0px";
+  gsap.to(lobo, { x: izq ? -240 : 240, opacity: 0, duration: .5, ease: "power2.in", onComplete: loboLuego });
+});
+function ganar() {
+  jugando = false; clearTimeout(timerPista); clearTimeout(timerLobo);
+  gsap.to(lobo, { opacity: 0, duration: .3 });
+  sfx.festejo(); festejo(); decir(9);
+  $("#finalTitulo").textContent = "¡Los encontraste a todos, " + nombre + "!";
+  $("#finalTexto").textContent = "Nivel " + nivel + ": " + total + " cabritos 🐐";
+  setTimeout(function () { $("#final").classList.remove("fuera"); }, 900);
+}
+function festejo() {
+  var colores = ["#f6c945", "#f28fb0", "#7cc4f2", "#9be08a", "#c7a3f0", "#f2a567"];
+  for (var k = 0; k < 50; k++) {
+    var e = document.createElement("div"); e.className = "papelito"; e.style.background = colores[k % colores.length]; document.body.appendChild(e);
+    gsap.fromTo(e, { x: innerWidth / 2, y: innerHeight * .3, rotation: 0, opacity: 1 },
+      { x: innerWidth / 2 + (Math.random() - .5) * innerWidth, y: innerHeight * (.1 + Math.random() * .9), rotation: Math.random() * 720,
+        opacity: 0, duration: 2 + Math.random(), ease: "power2.out", onComplete: (function (el) { return function () { el.remove(); }; })(e) });
+  }
+}
+document.addEventListener("pointerdown", function (ev) { if (!ev.target.closest("#barra, .cartel, #lobo")) tocar(ev); });
+$("#jugar").addEventListener("click", empezar);
+$("#siguiente").addEventListener("click", function () { nivel++; store.set("nivel", nivel); empezar(); });
+$("#repetir").addEventListener("click", empezar);
+$("#sonido").addEventListener("click", function () {
+  conSonido = !conSonido; store.set("sonido", conSonido ? "1" : "0");
+  this.textContent = conSonido ? "🔊" : "🔇"; if (!conSonido && window.speechSynthesis) speechSynthesis.cancel();
+});
+$("#sonido").textContent = conSonido ? "🔊" : "🔇";
+// la primera vez se ve un lugar de fondo detrás del cartel
+$("#lugar").src = LUGARES.casa.img; $("#fondo").style.backgroundImage = "url(" + LUGARES.casa.img + ")";
+acomodar();
+})();
+</script>
+</body>
+</html>

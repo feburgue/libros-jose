@@ -1,0 +1,32 @@
+# ¡A buscar a los cabritos! — frases del juego (escondidas/index.html)
+# Una sección por frase. Se pueden corregir a mano y volver a grabar.
+
+== 1
+¡Los cabritos se escondieron! ¿Me ayudás a encontrarlos?
+
+== 2
+¡Me encontraste!
+
+== 3
+¡Acá estoy!
+
+== 4
+¡Jiji, me encontraste!
+
+== 5
+Acá no hay ningún cabrito... ¡hay un gatito durmiendo!
+
+== 6
+¡Cuac! ¡Soy un patito!
+
+== 7
+¡Es una pelota!
+
+== 8
+¡Uy, me vieron!
+
+== 9
+¡Los encontraste a todos! ¡Muy bien, Josefina!
+
+== 10
+¡Ahora se esconden más cabritos! ¿Los encontrás?
