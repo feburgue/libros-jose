@@ -58,6 +58,12 @@
   #lugares button span{display:block; padding:5px 4px 6px}
   #inicio h1{font-size:clamp(22px,4.5vw,44px)} #inicio .caja > img{height:min(18vh,120px)}
   /* pantallas bajas (teléfono acostado): sin la mamá y con tarjetas más chicas, para que entren las dos filas */
+  @media (max-height:520px){
+    #final .caja > img{display:none} #final h1{font-size:28px; margin-bottom:4px} #final p{font-size:17px; margin-bottom:10px}
+    #final .grande{font-size:19px; padding:13px 22px} #final .chico{font-size:15px; padding:9px 14px}
+    #final br{display:none} #final .caja{display:flex; flex-direction:column; align-items:center}
+    #final .botones{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; align-items:center}
+    #fila img{height:24px} #fila{padding:3px 8px} }
   @media (max-height:520px){ #inicio .caja > img{display:none} #inicio h1{font-size:26px; margin-bottom:4px}
     #inicio p{margin-bottom:8px; font-size:17px} #lugares{max-width:min(94vw,128vh); gap:8px} #lugares button span{padding:3px 2px 4px} }
   .cartel img{height:min(30vh,200px); display:block; margin:0 auto 6px}
@@ -88,9 +94,11 @@
   <img src="img/mama-cabra.webp" alt="">
   <h1 id="finalTitulo">¡Los encontraste a todos!</h1>
   <p id="finalTexto"></p>
+  <div class="botones">
   <button class="grande" id="siguiente">▶ Siguiente nivel</button><br>
-  <button class="chico" id="repetir">Jugar este nivel otra vez</button>
+  <button class="chico" id="repetir">Otra vez</button>
   <button class="chico" id="cambiar">Cambiar de lugar</button>
+  </div>
 </div></div>
 </div>
 
