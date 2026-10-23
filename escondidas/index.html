@@ -219,7 +219,7 @@ fetch("../textos/escondidas.txt").then(function (r) { return r.text(); }).then(f
 fetch("../audio/escondidas/indice.json").then(function (r) { return r.ok ? r.json() : {}; }).then(function (j) { audios = j.paginas || {}; }).catch(function () {});
 function decir(n) {
   if (!conSonido) return;
-  if (audios[n] && !(n === 9 && nombre !== "Josefina")) { voz.src = "../audio/escondidas/p" + (n < 10 ? "0" : "") + n + ".mp3"; voz.play().catch(function () {}); return; }
+  if (audios[n]) { voz.src = "../audio/escondidas/p" + (n < 10 ? "0" : "") + n + ".mp3"; voz.play().catch(function () {}); return; }
   var s = window.speechSynthesis; if (!s || !frases[n]) return;
   s.cancel();
   var u = new SpeechSynthesisUtterance(frases[n].replace(/Josefina/g, nombre));

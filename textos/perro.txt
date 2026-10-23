@@ -2,7 +2,7 @@
 # Una sección por frase. Se pueden corregir a mano y volver a grabar.
 
 == 1
-¡Te toca, Josefina!
+¡Te toca!
 
 == 2
 ¡Te toca, mamá!
@@ -14,7 +14,7 @@
 ¡Ñam! ¡Jajaja, te atrapé!
 
 == 5
-¡Ganó Josefina!
+¡Ganaste!
 
 == 6
 ¡Ganó mamá!
